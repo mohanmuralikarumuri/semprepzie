@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semprepzie - Educational Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="animations.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="book-loader">
+            <div class="book">
+                <div class="page page1"></div>
+                <div class="page page2"></div>
+                <div class="page page3"></div>
+            </div>
+            <h2>Loading Semprepzie...</h2>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="login-page hidden">
+        <div class="login-container">
+            <h1>🎓 Welcome to Semprepzie</h1>
+            <div class="login-form">
+                <input type="text" id="loginInput" placeholder="Enter your ID...." maxlength="10">
+                <button onclick="login()">Login</button>
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Website -->
+    <div id="mainSite" class="main-site hidden">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h1>🎓 Semprepzie</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#" onclick="showSection('home')">Home</a></li>
+                    <li><a href="#" onclick="showSection('theory')">Theory</a></li>
+                    <li><a href="#" onclick="showSection('lab')">Lab Materials</a></li>
+                    <li><a href="#" onclick="showSection('mincode')">Minimized Code</a></li>
+                    <li><a href="#about-section" onclick="scrollToSection('about-section')">About Us</a></li>
+                    <li><a href="#contact-section" onclick="scrollToSection('contact-section')">Contact Us</a></li>
+                </ul>
+                <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="nav-controls">
+                    <button id="loginToggle" onclick="toggleLogin()" class="login-toggle">🔐 Login</button>
+                    <div class="theme-toggle">
+                        <button id="themeToggle" onclick="toggleTheme()">🌙</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">🎓 Welcome to Semprepzie</h1>
+                    <p class="hero-subtitle">Your comprehensive learning platform for academic excellence</p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary" onclick="showSection('theory')">Explore Theory</button>
+                        <button class="btn-secondary" onclick="showSection('lab')">Lab Materials</button>
+                    </div>
+                </div>
+                <div class="hero-animation">
+                    <div class="floating-cube"></div>
+                    <div class="floating-sphere"></div>
+                </div>
+            </div>
+
+            <!-- About Us Section - Inline in Home -->
+            <div class="home-section-divider" id="about-section">
+                <div class="container">
+                    <div class="home-about-section">
+                        <h2 class="section-title gradient-text">About Semprepzie</h2>
+                        <div class="about-content">
+                            <div class="about-text">
+                                <h3>Welcome to Your Learning Journey</h3>
+                                <p>Semprepzie is a comprehensive educational portal designed to provide students with easy access to theory materials, lab exercises, and minimized code resources. Our platform offers an intuitive and modern interface to enhance your learning experience.</p>
+                                <div class="features">
+                                    <div class="feature">
+                                        <div class="feature-icon">📚</div>
+                                        <div class="feature-content">
+                                            <h4>Theory Courses</h4>
+                                            <p>6 comprehensive subjects with detailed units and PDF resources</p>
+                                        </div>
+                                    </div>
+                                    <div class="feature">
+                                        <div class="feature-icon">🔬</div>
+                                        <div class="feature-content">
+                                            <h4>Lab Materials</h4>
+                                            <p>4 lab courses with 10 exercises each, including practical PDFs</p>
+                                        </div>
+                                    </div>
+                                    <div class="feature">
+                                        <div class="feature-icon">💻</div>
+                                        <div class="feature-content">
+                                            <h4>Minimized Code</h4>
+                                            <p>Optimized and clean code snippets for various programming concepts</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Us Section - Inline in Home -->
+            <div class="home-section-divider" id="contact-section">
+                <div class="container">
+                    <div class="home-contact-section">
+                        <h2 class="section-title gradient-text">Get in Touch</h2>
+                        <div class="contact-content">
+                            <div class="contact-info">
+                                <h3>Contact Information</h3>
+                                <div class="contact-item">
+                                    <div class="contact-icon">📧</div>
+                                    <div class="contact-details">
+                                        <strong>Email</strong>
+                                        <p>contact@semprepzie.com</p>
+                                    </div>
+                                </div>
+                                <div class="contact-item">
+                                    <div class="contact-icon">📞</div>
+                                    <div class="contact-details">
+                                        <strong>Phone</strong>
+                                        <p>+1 234 567 8900</p>
+                                    </div>
+                                </div>
+                                <div class="contact-item">
+                                    <div class="contact-icon">📍</div>
+                                    <div class="contact-details">
+                                        <strong>Address</strong>
+                                        <p>Educational District, Tech City</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contact-form">
+                                <h3>Send us a Message</h3>
+                                <form>
+                                    <div class="form-group">
+                                        <input type="text" placeholder="Your Name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="email" placeholder="Your Email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <textarea placeholder="Your Message" rows="5" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Send Message</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Theory Section -->
+        <section id="theory" class="section">
+            <div class="geometric-shape"></div>
+            <div class="geometric-shape"></div>
+            <div class="geometric-shape"></div>
+            <div class="geometric-shape"></div>
+            <div class="container">
+                <h2 class="section-title gradient-text">Theory Courses</h2>
+                <div id="theoryContent" class="courses-grid">
+                    <!-- Content will be loaded dynamically after login -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Lab Materials Section -->
+        <section id="lab" class="section">
+            <div class="container">
+                <h2 class="section-title">Lab Materials</h2>
+                <div id="labContent" class="lab-grid">
+                    <!-- Content will be loaded dynamically after login -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Minimized Code Section -->
+        <section id="mincode" class="section">
+            <div class="container">
+                <h2 class="section-title">Minimized Code</h2>
+                <div id="mincodeContent" class="code-grid">
+                    <!-- Content will be loaded dynamically after login -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <div class="container">
+                <h2 class="section-title">Contact Us</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h3>Get in Touch</h3>
+                        <p>📧 Email: contact@semprepzie.com</p>
+                        <p>📞 Phone: +1 234 567 8900</p>
+                        <p>📍 Address: Educational District, Tech City</p>
+                    </div>
+                    <div class="contact-form">
+                        <h3>Send Message</h3>
+                        <form>
+                            <input type="text" placeholder="Your Name" required>
+                            <input type="email" placeholder="Your Email" required>
+                            <textarea placeholder="Your Message" rows="5" required></textarea>
+                            <button type="submit">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section">
+            <div class="container">
+                <h2 class="section-title">About Us</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <h3>Welcome to Semprepzie</h3>
+                        <p>Semprepzie is a comprehensive educational portal designed to provide students with easy access to theory materials, lab exercises, and minimized code resources. Our platform offers an intuitive and modern interface to enhance your learning experience.</p>
+                        <div class="features">
+                            <div class="feature">
+                                <h4>📚 Theory Courses</h4>
+                                <p>6 comprehensive subjects with detailed units and PDF resources</p>
+                            </div>
+                            <div class="feature">
+                                <h4>🔬 Lab Materials</h4>
+                                <p>4 lab courses with 10 exercises each, including practical PDFs</p>
+                            </div>
+                            <div class="feature">
+                                <h4>💻 Minimized Code</h4>
+                                <p>Optimized and clean code snippets for various programming concepts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Course Modal -->
+    <div id="courseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Course Title</h2>
+            <div id="modalBody" class="modal-body">
+                <!-- Course content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

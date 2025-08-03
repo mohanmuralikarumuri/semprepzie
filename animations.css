@@ -1,0 +1,619 @@
+/* Additional 3D Effects and Animations */
+
+/* Enhanced Mobile Touch Interactions */
+@media (max-width: 768px) {
+    .course-card, .lab-card, .code-card {
+        transform: none;
+        transition: all 0.2s ease;
+    }
+    
+    .course-card:active, .lab-card:active, .code-card:active {
+        transform: scale(0.95);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+    
+    .btn-primary:active, .btn-secondary:active {
+        transform: scale(0.95);
+    }
+    
+    /* Mobile menu animation */
+    .nav-menu {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-20px);
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    .nav-menu.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    
+    .nav-menu li {
+        transform: translateX(-100px);
+        opacity: 0;
+        transition: all 0.4s ease;
+    }
+    
+    .nav-menu.active li {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    
+    .nav-menu.active li:nth-child(1) { transition-delay: 0.1s; }
+    .nav-menu.active li:nth-child(2) { transition-delay: 0.2s; }
+    .nav-menu.active li:nth-child(3) { transition-delay: 0.3s; }
+    .nav-menu.active li:nth-child(4) { transition-delay: 0.4s; }
+    .nav-menu.active li:nth-child(5) { transition-delay: 0.5s; }
+    .nav-menu.active li:nth-child(6) { transition-delay: 0.6s; }
+}
+
+/* Enhanced 3D Card Effects */
+.course-card, .lab-card, .code-card {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+}
+
+@media (min-width: 769px) {
+    .course-card:hover, .lab-card:hover, .code-card:hover {
+        transform: translateY(-15px) rotateX(10deg) rotateY(5deg) scale(1.05);
+        box-shadow: 
+            0 20px 40px rgba(99, 102, 241, 0.2),
+            0 0 0 1px rgba(99, 102, 241, 0.1);
+    }
+    
+    /* 3D Flip Effect on Double Click */
+    .course-card.flipped, .lab-card.flipped, .code-card.flipped {
+        transform: rotateY(180deg) scale(1.1);
+        transition: transform 0.8s ease-in-out;
+    }
+    
+    /* Floating Animation */
+    .course-card {
+        animation: float-course 6s ease-in-out infinite;
+    }
+    
+    .lab-card {
+        animation: float-course 6s ease-in-out infinite;
+        animation-delay: 1.5s;
+    }
+    
+    .code-card {
+        animation: float-course 6s ease-in-out infinite;
+        animation-delay: 3s;
+    }
+}
+
+@keyframes float-course {
+    0%, 100% { 
+        transform: translateY(0px) rotateX(0deg);
+    }
+    25% { 
+        transform: translateY(-5px) rotateX(2deg);
+    }
+    50% { 
+        transform: translateY(0px) rotateX(0deg);
+    }
+    75% { 
+        transform: translateY(-3px) rotateX(-1deg);
+    }
+}
+
+/* Particle Trail Effect */
+.course-card::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.4), transparent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.6s ease;
+    z-index: -1;
+}
+
+.course-card:hover::before {
+    width: 200px;
+    height: 200px;
+    opacity: 0.3;
+}
+
+/* 3D Text Effects */
+.course-card h3, .lab-card h3, .code-card h3 {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+}
+
+.course-card h3::after, .lab-card h3::after, .code-card h3::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 2px;
+    left: 0;
+    background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    z-index: -1;
+    transition: all 0.3s ease;
+}
+
+.course-card:hover h3::after, .lab-card:hover h3::after, .code-card:hover h3::after {
+    transform: translate(3px, 3px);
+    opacity: 0.7;
+}
+
+/* Holographic Effect */
+.course-card.holographic {
+    background: linear-gradient(45deg, 
+        rgba(99, 102, 241, 0.1),
+        rgba(139, 92, 246, 0.1),
+        rgba(6, 182, 212, 0.1));
+    background-size: 400% 400%;
+    animation: holographic 4s ease-in-out infinite;
+}
+
+@keyframes holographic {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Magnetic Attraction Effect */
+.course-card.magnetic {
+    transition: all 0.1s ease-out;
+}
+
+/* Glitch Effect */
+.course-card.glitch {
+    animation: glitch 2s infinite;
+}
+
+@keyframes glitch {
+    0%, 100% { transform: translate(0); }
+    10% { transform: translate(-2px, -1px); }
+    20% { transform: translate(2px, 1px); }
+    30% { transform: translate(-1px, 2px); }
+    40% { transform: translate(1px, -2px); }
+    50% { transform: translate(-2px, 1px); }
+    60% { transform: translate(2px, -1px); }
+    70% { transform: translate(-1px, -2px); }
+    80% { transform: translate(1px, 2px); }
+    90% { transform: translate(-2px, -1px); }
+}
+
+/* 3D Scene Background for Theory Section */
+#theory {
+    position: relative;
+    overflow: hidden;
+}
+
+#theory::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 60%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+    animation: backgroundFlow 10s ease-in-out infinite;
+    z-index: 0;
+}
+
+@keyframes backgroundFlow {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 0.3;
+    }
+    33% { 
+        transform: scale(1.1) rotate(120deg);
+        opacity: 0.5;
+    }
+    66% { 
+        transform: scale(0.9) rotate(240deg);
+        opacity: 0.4;
+    }
+}
+
+/* Floating geometric shapes */
+.geometric-shape {
+    position: absolute;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    opacity: 0.1;
+    animation: geometricFloat 8s ease-in-out infinite;
+    z-index: 0;
+}
+
+.geometric-shape:nth-child(1) {
+    width: 60px;
+    height: 60px;
+    top: 10%;
+    left: 10%;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    animation-delay: 0s;
+}
+
+.geometric-shape:nth-child(2) {
+    width: 40px;
+    height: 40px;
+    top: 20%;
+    right: 15%;
+    border-radius: 50%;
+    animation-delay: 2s;
+}
+
+.geometric-shape:nth-child(3) {
+    width: 50px;
+    height: 50px;
+    bottom: 15%;
+    left: 20%;
+    clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%);
+    animation-delay: 4s;
+}
+
+.geometric-shape:nth-child(4) {
+    width: 35px;
+    height: 35px;
+    bottom: 25%;
+    right: 25%;
+    transform: rotate(45deg);
+    animation-delay: 6s;
+}
+
+@keyframes geometricFloat {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-20px) rotate(90deg);
+    }
+    50% {
+        transform: translateY(0px) rotate(180deg);
+    }
+    75% {
+        transform: translateY(-15px) rotate(270deg);
+    }
+}
+
+/* Course card entrance animation */
+.course-card {
+    opacity: 0;
+    transform: translateY(50px) rotateX(-30deg);
+    animation: courseEntrance 0.8s ease-out forwards;
+}
+
+.course-card:nth-child(1) { animation-delay: 0.1s; }
+.course-card:nth-child(2) { animation-delay: 0.2s; }
+.course-card:nth-child(3) { animation-delay: 0.3s; }
+.course-card:nth-child(4) { animation-delay: 0.4s; }
+.course-card:nth-child(5) { animation-delay: 0.5s; }
+.course-card:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes courseEntrance {
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0deg);
+    }
+}
+
+/* Energy pulse effect */
+.course-card.energy-pulse {
+    animation: energyPulse 2s ease-in-out infinite;
+}
+
+@keyframes energyPulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(99, 102, 241, 0.3),
+            inset 0 0 20px rgba(99, 102, 241, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 0 40px rgba(99, 102, 241, 0.6),
+            inset 0 0 30px rgba(99, 102, 241, 0.2);
+    }
+}
+
+/* Glowing effect for buttons */
+.btn-primary, .btn-secondary, .login-form button {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before, .btn-secondary::before, .login-form button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-primary:hover::before, .btn-secondary:hover::before, .login-form button:hover::before {
+    left: 100%;
+}
+
+/* Floating particles animation */
+.floating-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: float-particle 15s infinite linear;
+}
+
+@keyframes float-particle {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.3;
+    }
+    90% {
+        opacity: 0.3;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Enhanced loading animation */
+.book-loader h2 {
+    background: linear-gradient(45deg, #fff, #f0f0f0, #fff);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Neon glow effect for theme toggle */
+.theme-toggle button {
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle button:hover {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+    transform: rotate(180deg) scale(1.2);
+}
+
+/* Ripple effect for clickable elements */
+.ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.ripple:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Gradient text animation */
+.gradient-text {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Pulsing animation for important elements */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Morphing shapes */
+.morphing-shape {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    animation: morph 4s ease-in-out infinite;
+}
+
+@keyframes morph {
+    0%, 100% { 
+        border-radius: 50%;
+        transform: rotate(0deg);
+    }
+    25% { 
+        border-radius: 20%;
+        transform: rotate(90deg);
+    }
+    50% { 
+        border-radius: 0%;
+        transform: rotate(180deg);
+    }
+    75% { 
+        border-radius: 20%;
+        transform: rotate(270deg);
+    }
+}
+
+/* Text shadow effects */
+.text-shadow {
+    text-shadow: 
+        0 1px 0 rgba(255,255,255,0.4),
+        0 2px 4px rgba(0,0,0,0.1),
+        0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Glass morphism effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* Tilt effect */
+.tilt {
+    transition: transform 0.3s ease;
+}
+
+.tilt:hover {
+    transform: perspective(1000px) rotateX(10deg) rotateY(10deg);
+}
+
+/* Magnetic hover effect */
+.magnetic {
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.magnetic:hover {
+    transform: translate(10px, -10px);
+}
+
+/* Bouncing animation */
+.bounce-in {
+    animation: bounceIn 0.8s ease-out;
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Slide in animations */
+.slide-in-left {
+    animation: slideInLeft 0.8s ease-out;
+}
+
+.slide-in-right {
+    animation: slideInRight 0.8s ease-out;
+}
+
+@keyframes slideInLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    0% {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Stagger animation for grid items */
+.stagger-item {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: staggerIn 0.6s ease-out forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+.stagger-item:nth-child(5) { animation-delay: 0.5s; }
+.stagger-item:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes staggerIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced mobile responsiveness */
+@media (max-width: 768px) {
+    .floating-cube, .floating-sphere {
+        display: none;
+    }
+    
+    .hero-title {
+        font-size: 36px;
+    }
+    
+    .section-title {
+        font-size: 32px;
+    }
+    
+    .course-card, .lab-card, .code-card {
+        padding: 20px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 20px;
+    }
+}

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Semprepzie</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { border: 2px solid #333; margin: 10px 0; padding: 15px; }
+        .debug-button { background: #6366f1; color: white; padding: 10px 15px; border: none; border-radius: 5px; margin: 5px; cursor: pointer; }
+        .content-area { border: 1px dashed #666; min-height: 100px; padding: 10px; margin: 10px 0; }
+        .course-card, .lab-card { border: 1px solid #ccc; padding: 10px; margin: 5px; display: inline-block; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Semprepzie Debug Page</h1>
+    
+    <div class="debug-section">
+        <h2>Debug Controls</h2>
+        <button class="debug-button" onclick="checkElements()">Check Elements</button>
+        <button class="debug-button" onclick="testTheoryLoad()">Load Theory</button>
+        <button class="debug-button" onclick="testLabLoad()">Load Lab</button>
+        <button class="debug-button" onclick="clearContent()">Clear All</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Debug Info</h2>
+        <div id="debugInfo">Debug info will appear here...</div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Theory Content</h2>
+        <div id="theoryContent" class="content-area">Theory content will appear here</div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Lab Content</h2>
+        <div id="labContent" class="content-area">Lab content will appear here</div>
+    </div>
+    
+    <script>
+        function debugLog(message) {
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+            console.log(message);
+        }
+        
+        function checkElements() {
+            debugLog('=== CHECKING ELEMENTS ===');
+            debugLog('theoryContent: ' + (document.getElementById('theoryContent') ? 'FOUND' : 'NOT FOUND'));
+            debugLog('labContent: ' + (document.getElementById('labContent') ? 'FOUND' : 'NOT FOUND'));
+        }
+        
+        function testTheoryLoad() {
+            debugLog('=== LOADING THEORY CONTENT ===');
+            const theoryContent = document.getElementById('theoryContent');
+            if (!theoryContent) {
+                debugLog('ERROR: theoryContent element not found!');
+                return;
+            }
+            
+            theoryContent.innerHTML = '';
+            
+            const courseCards = `
+                <div class="course-card" onclick="alert('Mathematics clicked!')">
+                    <div class="course-content">
+                        <div class="course-icon">📐</div>
+                        <h3>Mathematics</h3>
+                        <p>5 Units Available</p>
+                    </div>
+                </div>
+                <div class="course-card" onclick="alert('Physics clicked!')">
+                    <div class="course-content">
+                        <div class="course-icon">⚛️</div>
+                        <h3>Physics</h3>
+                        <p>5 Units Available</p>
+                    </div>
+                </div>
+                <div class="course-card" onclick="alert('Chemistry clicked!')">
+                    <div class="course-content">
+                        <div class="course-icon">🧪</div>
+                        <h3>Chemistry</h3>
+                        <p>5 Units Available</p>
+                    </div>
+                </div>
+                <div class="course-card" onclick="alert('Computer Science clicked!')">
+                    <div class="course-content">
+                        <div class="course-icon">💻</div>
+                        <h3>Computer Science</h3>
+                        <p>5 Units Available</p>
+                    </div>
+                </div>
+                <div class="course-card" onclick="alert('English clicked!')">
+                    <div class="course-content">
+                        <div class="course-icon">📚</div>
+                        <h3>English</h3>
+                        <p>5 Units Available</p>
+                    </div>
+                </div>
+                <div class="course-card" onclick="alert('Engineering clicked!')">
+                    <div class="course-content">
+                        <div class="course-icon">⚙️</div>
+                        <h3>Engineering</h3>
+                        <p>5 Units Available</p>
+                    </div>
+                </div>
+            `;
+            
+            theoryContent.innerHTML = courseCards;
+            debugLog('Theory cards added: ' + courseCards.length + ' characters');
+            debugLog('Theory content innerHTML length: ' + theoryContent.innerHTML.length);
+        }
+        
+        function testLabLoad() {
+            debugLog('=== LOADING LAB CONTENT ===');
+            const labContent = document.getElementById('labContent');
+            if (!labContent) {
+                debugLog('ERROR: labContent element not found!');
+                return;
+            }
+            
+            labContent.innerHTML = '';
+            
+            const labCards = `
+                <div class="lab-card" onclick="alert('Programming Lab clicked!')">
+                    <h3>Programming Lab</h3>
+                    <p>10 Exercises</p>
+                    <div class="lab-icon">👨‍💻</div>
+                </div>
+                <div class="lab-card" onclick="alert('Electronics Lab clicked!')">
+                    <h3>Electronics Lab</h3>
+                    <p>10 Exercises</p>
+                    <div class="lab-icon">🔌</div>
+                </div>
+                <div class="lab-card" onclick="alert('Physics Lab clicked!')">
+                    <h3>Physics Lab</h3>
+                    <p>10 Exercises</p>
+                    <div class="lab-icon">🔬</div>
+                </div>
+                <div class="lab-card" onclick="alert('Chemistry Lab clicked!')">
+                    <h3>Chemistry Lab</h3>
+                    <p>10 Exercises</p>
+                    <div class="lab-icon">⚗️</div>
+                </div>
+            `;
+            
+            labContent.innerHTML = labCards;
+            debugLog('Lab cards added: ' + labCards.length + ' characters');
+            debugLog('Lab content innerHTML length: ' + labContent.innerHTML.length);
+        }
+        
+        function clearContent() {
+            document.getElementById('theoryContent').innerHTML = 'Theory content cleared';
+            document.getElementById('labContent').innerHTML = 'Lab content cleared';
+            document.getElementById('debugInfo').innerHTML = 'Debug info cleared<br>';
+            debugLog('All content cleared');
+        }
+        
+        // Auto-run on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('Debug page loaded');
+            checkElements();
+        });
+    </script>
+</body>
+</html>
