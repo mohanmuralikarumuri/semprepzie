@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show home section (no login required for home)
         showSection('home');
         
+        // Initialize hero effects
+        initializeHeroEffects();
+        
         // Do NOT pre-load protected content - let users access it through login
     }, 1500);
 
@@ -44,6 +47,89 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add stagger animation to course cards
     setTimeout(addStaggerAnimation, 2000);
 });
+
+// Initialize hero effects
+function initializeHeroEffects() {
+    // Add glowing orbs to hero section
+    const hero = document.querySelector('.hero');
+    if (hero) {
+        // Create glowing orbs
+        for (let i = 0; i < 3; i++) {
+            const glow = document.createElement('div');
+            glow.className = 'hero-glow';
+            hero.appendChild(glow);
+        }
+        
+        // Create particles container
+        const particlesContainer = document.createElement('div');
+        particlesContainer.className = 'particles';
+        hero.appendChild(particlesContainer);
+        
+        // Generate particles
+        setInterval(() => {
+            createParticle(particlesContainer);
+        }, 800);
+        
+        // Add shimmer effect to title
+        const heroTitle = document.querySelector('.hero-title');
+        if (heroTitle) {
+            setInterval(() => {
+                heroTitle.classList.add('shimmer');
+                setTimeout(() => {
+                    heroTitle.classList.remove('shimmer');
+                }, 3000);
+            }, 8000);
+        }
+        
+        // Add interactive mouse effects
+        hero.addEventListener('mousemove', (e) => {
+            const rect = hero.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            // Move glowing orbs based on mouse position
+            const glows = hero.querySelectorAll('.hero-glow');
+            glows.forEach((glow, index) => {
+                const intensity = (index + 1) * 0.3;
+                glow.style.transform = `translate(${x * intensity}px, ${y * intensity}px)`;
+            });
+        });
+    }
+}
+
+// Create individual particle
+function createParticle(container) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    
+    // Random properties
+    const size = Math.random() * 4 + 2;
+    const left = Math.random() * 100;
+    const animationDuration = Math.random() * 10 + 10;
+    const opacity = Math.random() * 0.5 + 0.3;
+    
+    // Random colors
+    const colors = ['var(--primary-color)', 'var(--secondary-color)', 'var(--accent-color)'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    particle.style.cssText = `
+        width: ${size}px;
+        height: ${size}px;
+        left: ${left}%;
+        background: ${color};
+        animation-duration: ${animationDuration}s;
+        opacity: ${opacity};
+    `;
+    
+    container.appendChild(particle);
+    
+    // Remove particle after animation
+    setTimeout(() => {
+        if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+        }
+    }, animationDuration * 1000);
+}
 
 // Login functionality
 function login() {
@@ -261,9 +347,14 @@ function showSection(sectionName) {
     // Close mobile menu after selection
     const navMenu = document.querySelector('.nav-menu');
     const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    const body = document.body;
     if (navMenu && mobileToggle) {
         navMenu.classList.remove('active');
         mobileToggle.classList.remove('active');
+        body.classList.remove('menu-open');
+        body.style.overflow = '';
+        body.style.position = '';
+        body.style.width = '';
     }
 }
 
@@ -897,16 +988,25 @@ function updateTheme() {
 function toggleMobileMenu() {
     const navMenu = document.querySelector('.nav-menu');
     const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    const body = document.body;
     
     if (navMenu && mobileToggle) {
+        const isActive = navMenu.classList.contains('active');
+        
         navMenu.classList.toggle('active');
         mobileToggle.classList.toggle('active');
         
-        // Prevent body scroll when menu is open
-        if (navMenu.classList.contains('active')) {
-            document.body.style.overflow = 'hidden';
+        // Toggle body scroll lock for mobile
+        if (!isActive) {
+            body.classList.add('menu-open');
+            body.style.overflow = 'hidden';
+            body.style.position = 'fixed';
+            body.style.width = '100%';
         } else {
-            document.body.style.overflow = 'auto';
+            body.classList.remove('menu-open');
+            body.style.overflow = '';
+            body.style.position = '';
+            body.style.width = '';
         }
     }
 }
@@ -916,12 +1016,16 @@ document.addEventListener('click', function(event) {
     const navMenu = document.querySelector('.nav-menu');
     const mobileToggle = document.querySelector('.mobile-menu-toggle');
     const navbar = document.querySelector('.navbar');
+    const body = document.body;
     
     if (navMenu && mobileToggle && navbar) {
         if (!navbar.contains(event.target) && navMenu.classList.contains('active')) {
             navMenu.classList.remove('active');
             mobileToggle.classList.remove('active');
-            document.body.style.overflow = 'auto';
+            body.classList.remove('menu-open');
+            body.style.overflow = '';
+            body.style.position = '';
+            body.style.width = '';
         }
     }
 });
@@ -930,11 +1034,15 @@ document.addEventListener('click', function(event) {
 window.addEventListener('resize', function() {
     const navMenu = document.querySelector('.nav-menu');
     const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    const body = document.body;
     
     if (window.innerWidth > 768 && navMenu && mobileToggle) {
         navMenu.classList.remove('active');
         mobileToggle.classList.remove('active');
-        document.body.style.overflow = 'auto';
+        body.classList.remove('menu-open');
+        body.style.overflow = '';
+        body.style.position = '';
+        body.style.width = '';
     }
 });
 
