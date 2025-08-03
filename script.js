@@ -2975,3 +2975,653 @@ document.addEventListener('DOMContentLoaded', function() {
         initIntersectionAnimations();
     }, 1000);
 });
+
+// Contact Form Submission
+async function submitContactForm(event, formType) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const statusElement = document.getElementById(formType === 'home' ? 'homeFormStatus' : 'contactFormStatus');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Get form data
+    const formData = new FormData(form);
+    const name = formData.get('name').trim();
+    const email = formData.get('email').trim();
+    const message = formData.get('message').trim();
+    
+    // Validation
+    if (!name || !email || !message) {
+        showFormStatus(statusElement, 'Please fill in all fields.', 'error');
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        showFormStatus(statusElement, 'Please enter a valid email address.', 'error');
+        return;
+    }
+    
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending...';
+    showFormStatus(statusElement, 'Sending your message...', 'loading');
+    
+    try {
+        // Try different methods in sequence for better reliability
+        let success = false;
+        let lastError = null;
+        
+        // Method 1: Try FormSubmit (works immediately, no setup required)
+        try {
+            success = await sendToFormSubmit(name, email, message);
+            if (success) {
+                showFormStatus(statusElement, 'Message sent successfully! We\'ll get back to you soon.', 'success');
+                form.reset();
+                return;
+            }
+        } catch (error) {
+            lastError = error;
+            console.log('FormSubmit failed:', error);
+        }
+        
+        // Method 2: Try Formspree (most reliable)
+        try {
+            success = await sendToFormspree(name, email, message);
+            if (success) {
+                showFormStatus(statusElement, 'Message sent successfully! We\'ll get back to you soon.', 'success');
+                form.reset();
+                return;
+            }
+        } catch (error) {
+            lastError = error;
+            console.log('Formspree failed:', error);
+        }
+        
+        // Method 2: Try Netlify Forms
+        try {
+            success = await sendToNetlify(name, email, message);
+            if (success) {
+                showFormStatus(statusElement, 'Message sent successfully! We\'ll get back to you soon.', 'success');
+                form.reset();
+                return;
+            }
+        } catch (error) {
+            lastError = error;
+            console.log('Netlify failed:', error);
+        }
+        
+        // Method 3: Try Web3Forms (new reliable service)
+        try {
+            success = await sendToWeb3Forms(name, email, message);
+            if (success) {
+                showFormStatus(statusElement, 'Message sent successfully! We\'ll get back to you soon.', 'success');
+                form.reset();
+                return;
+            }
+        } catch (error) {
+            lastError = error;
+            console.log('Web3Forms failed:', error);
+        }
+        
+        // Method 4: Try PHP backend if available
+        try {
+            success = await sendToPHPBackend(name, email, message);
+            if (success) {
+                showFormStatus(statusElement, 'Message sent successfully! We\'ll get back to you soon.', 'success');
+                form.reset();
+                return;
+            }
+        } catch (error) {
+            lastError = error;
+            console.log('PHP backend failed:', error);
+        }
+        
+        // Method 5: Client-side mailto as final fallback
+        try {
+            success = await sendViaMailto(name, email, message);
+            if (success) {
+                showFormStatus(statusElement, 'Opening your email client to send the message...', 'success');
+                form.reset();
+                return;
+            }
+        } catch (error) {
+            lastError = error;
+            console.log('Mailto failed:', error);
+        }
+        
+        // If all methods fail, show error with helpful message
+        throw new Error('All services failed');
+        
+    } catch (error) {
+        console.error('Form submission error:', error);
+        showFormStatus(statusElement, 'Unable to send message automatically. Please use the "Email Directly" button below to contact us directly.', 'error');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Send Message';
+    }
+}
+
+// Send to FormSubmit (works immediately, no setup required)
+async function sendToFormSubmit(name, email, message) {
+    try {
+        const response = await fetch('https://formsubmit.co/semprepzie@gmail.com', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                message: message,
+                _subject: `New Contact Form Message from ${name}`,
+                _captcha: 'false',
+                _template: 'table'
+            })
+        });
+        
+        return response.ok;
+    } catch (error) {
+        console.error('FormSubmit error:', error);
+        return false;
+    }
+}
+
+// Handle form submission with multiple fallbacks
+function handleSubmit(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const name = formData.get('name');
+    const email = formData.get('email');
+    const message = formData.get('message');
+    
+    // Try multiple methods in sequence
+    tryFormSubmit(form, name, email, message);
+}
+
+// Try different form submission methods
+async function tryFormSubmit(form, name, email, message) {
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending...';
+    
+    // Method 1: Try FormSubmit directly
+    try {
+        const response = await fetch('https://formsubmit.co/semprepzie@gmail.com', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                message: message,
+                _subject: `New message from ${name} - Semprepzie Website`,
+                _captcha: 'false',
+                _template: 'table'
+            })
+        });
+        
+        if (response.ok) {
+            showNotification('Message sent successfully! We\'ll get back to you soon.', 'success');
+            form.reset();
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            return;
+        }
+    } catch (error) {
+        console.log('FormSubmit failed:', error);
+    }
+    
+    // Method 2: Try Getform
+    try {
+        const response = await fetch('https://getform.io/f/arolxgka', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                message: message
+            })
+        });
+        
+        if (response.ok) {
+            showNotification('Message sent successfully! We\'ll get back to you soon.', 'success');
+            form.reset();
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            return;
+        }
+    } catch (error) {
+        console.log('Getform failed:', error);
+    }
+    
+    // Method 3: Open Gmail as fallback
+    showNotification('Opening Gmail to send your message...', 'info');
+    const subject = encodeURIComponent(`Message from ${name} - Semprepzie Website`);
+    const body = encodeURIComponent(`Hello Semprepzie Team,
+
+Name: ${name}
+Email: ${email}
+
+Message:
+${message}
+
+---
+This message was composed using the Semprepzie contact form.`);
+    
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=semprepzie@gmail.com&subject=${subject}&body=${body}`, '_blank');
+    
+    submitButton.disabled = false;
+    submitButton.textContent = originalText;
+}
+
+// Show notification message
+function showNotification(message, type) {
+    // Create or get existing notification container
+    let container = document.getElementById('notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6'
+    };
+    
+    notification.style.cssText = `
+        background: ${colors[type] || colors.info};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 10px;
+        opacity: 0;
+        transform: translateX(100px);
+        transition: all 0.3s ease;
+        pointer-events: auto;
+    `;
+    
+    container.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Animate out and remove
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100px)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, type === 'error' ? 5000 : 3000);
+}
+
+// Copy email function
+function copyEmail() {
+    const email = 'semprepzie@gmail.com';
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(email).then(() => {
+            alert('✅ Email copied!\n\n' + email);
+        });
+    } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = email;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('✅ Email copied!\n\n' + email);
+    }
+}
+
+// Simple copy to clipboard function
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Email copied to clipboard: ' + text);
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Email copied to clipboard: ' + text);
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Email copied to clipboard: ' + text);
+    }
+}
+
+// Send via mailto (always works as fallback)
+async function sendViaMailto(name, email, message) {
+    return new Promise((resolve) => {
+        const subject = encodeURIComponent(`Contact Form Message from ${name}`);
+        const body = encodeURIComponent(`
+Hello Semprepzie Team,
+
+Name: ${name}
+Email: ${email}
+
+Message:
+${message}
+
+---
+This message was composed using the Semprepzie contact form.
+        `.trim());
+        
+        const mailtoLink = `mailto:semprepzie@gmail.com?subject=${subject}&body=${body}`;
+        
+        // Open mailto link
+        window.location.href = mailtoLink;
+        
+        // Consider it successful since we opened the email client
+        setTimeout(() => resolve(true), 100);
+    });
+}
+
+// Send to Web3Forms service (most reliable)
+async function sendToWeb3Forms(name, email, message) {
+    try {
+        const response = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                access_key: 'YOUR_ACCESS_KEY_HERE', // You'll need to get this from web3forms.com
+                name: name,
+                email: email,
+                message: message,
+                subject: `New Contact Form Message from ${name} - Semprepzie`,
+                from_name: 'Semprepzie Contact Form',
+                to_email: 'semprepzie@gmail.com'
+            })
+        });
+        
+        const result = await response.json();
+        return response.ok && result.success;
+    } catch (error) {
+        console.error('Web3Forms error:', error);
+        return false;
+    }
+}
+
+// Send to PHP backend
+async function sendToPHPBackend(name, email, message) {
+    try {
+        const response = await fetch('./contact.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                message: message
+            })
+        });
+        
+        const result = await response.json();
+        return response.ok && result.success;
+    } catch (error) {
+        console.error('PHP backend error:', error);
+        return false;
+    }
+}
+
+// Send to Formspree service
+async function sendToFormspree(name, email, message) {
+    try {
+        // Using Formspree's test endpoint - replace with your actual endpoint
+        const response = await fetch('https://formspree.io/f/mldeoddj', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                message: message,
+                _replyto: email,
+                _subject: `New message from ${name} - Semprepzie Contact Form`
+            })
+        });
+        
+        return response.ok;
+    } catch (error) {
+        console.error('Formspree error:', error);
+        return false;
+    }
+}
+
+// Send to Netlify Forms (works if deployed on Netlify)
+async function sendToNetlify(name, email, message) {
+    try {
+        // Check if we're on Netlify by looking for netlify in the hostname
+        if (!window.location.hostname.includes('netlify') && window.location.hostname !== 'localhost') {
+            return false; // Skip if not on Netlify
+        }
+        
+        const response = await fetch('/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'form-name': 'contact',
+                'name': name,
+                'email': email,
+                'message': message
+            }).toString()
+        });
+        
+        return response.ok;
+    } catch (error) {
+        console.error('Netlify error:', error);
+        return false;
+    }
+}
+
+// Send using EmailJS service
+async function sendToEmailJS(name, email, message) {
+    // You'll need to set up EmailJS account and get these IDs
+    const serviceID = 'service_semprepzie';
+    const templateID = 'template_contact';
+    const userID = 'user_semprepzie';
+    
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            service_id: serviceID,
+            template_id: templateID,
+            user_id: userID,
+            template_params: {
+                from_name: name,
+                from_email: email,
+                message: message,
+                to_email: 'semprepzie@gmail.com'
+            }
+        })
+    });
+    
+    return response.ok;
+}
+
+// Show form status message
+function showFormStatus(statusElement, message, type) {
+    statusElement.textContent = message;
+    statusElement.className = `form-status ${type} show`;
+    
+    // Auto-hide success messages after 5 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            statusElement.classList.remove('show');
+        }, 5000);
+    }
+}
+
+// Email validation
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Alternative direct email link fallback
+function openEmailClient() {
+    const subject = encodeURIComponent('Message from Semprepzie Website');
+    const body = encodeURIComponent('Hello Semprepzie Team,\n\nI would like to get in touch regarding:\n\n[Your message here]\n\nBest regards,\n[Your name]');
+    window.open(`mailto:semprepzie@gmail.com?subject=${subject}&body=${body}`);
+}
+
+// Send via Gmail web interface
+function sendViaGmail() {
+    const subject = encodeURIComponent('Message from Semprepzie Website');
+    const body = encodeURIComponent('Hello Semprepzie Team,\n\nI would like to get in touch regarding:\n\n[Please write your message here]\n\nBest regards,\n[Your name]\n[Your email]');
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=semprepzie@gmail.com&subject=${subject}&body=${body}`;
+    window.open(gmailUrl, '_blank');
+}
+
+// Send via Outlook web interface
+function sendViaOutlook() {
+    const subject = encodeURIComponent('Message from Semprepzie Website');
+    const body = encodeURIComponent('Hello Semprepzie Team,\n\nI would like to get in touch regarding:\n\n[Please write your message here]\n\nBest regards,\n[Your name]\n[Your email]');
+    const outlookUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=semprepzie@gmail.com&subject=${subject}&body=${body}`;
+    window.open(outlookUrl, '_blank');
+}
+
+// Copy email address to clipboard
+function copyEmail() {
+    const email = 'semprepzie@gmail.com';
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(email).then(() => {
+            showNotification('Email address copied to clipboard!', 'success');
+        }).catch(() => {
+            fallbackCopyEmail(email);
+        });
+    } else {
+        fallbackCopyEmail(email);
+    }
+}
+
+// Fallback copy method for older browsers
+function fallbackCopyEmail(email) {
+    const textArea = document.createElement('textarea');
+    textArea.value = email;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showNotification('Email address copied to clipboard!', 'success');
+    } catch (err) {
+        showNotification('Could not copy email. Please manually copy: semprepzie@gmail.com', 'error');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+// Show notification message
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateX(100px);
+        transition: all 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Animate out and remove
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100px)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Simplified form handler for better reliability
+function handleFormSubmit(event, formType) {
+    const statusElement = document.getElementById(formType === 'home' ? 'homeFormStatus' : 'contactFormStatus');
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending...';
+    showFormStatus(statusElement, 'Sending your message...', 'loading');
+    
+    // Let the form submit naturally to FormSubmit
+    // The form will redirect to the _next URL after successful submission
+    return true;
+}

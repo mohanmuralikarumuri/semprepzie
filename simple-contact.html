@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Contact - Semprepzie</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 100px auto; padding: 20px; background: #f0f2f5; }
+        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #333; text-align: center; margin-bottom: 30px; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        button { width: 100%; background: #007bff; color: white; padding: 15px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .email-info { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📧 Quick Contact</h2>
+        
+        <!-- Method 1: Getform.io (Free, no signup) -->
+        <form action="https://getform.io/f/raeqjdwa" method="POST">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="email" name="email" placeholder="Your Email" required>
+            <textarea name="message" placeholder="Your Message" rows="4" required></textarea>
+            <input type="hidden" name="_gotcha" style="display:none !important">
+            <button type="submit">Send Message</button>
+        </form>
+        
+        <div class="email-info">
+            <p>Or email directly: <strong>semprepzie@gmail.com</strong></p>
+            <button onclick="window.open('mailto:semprepzie@gmail.com', '_blank')" style="width: auto; padding: 8px 15px; font-size: 14px; margin-top: 10px;">📮 Open Email App</button>
+        </div>
+    </div>
+</body>
+</html>
