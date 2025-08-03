@@ -10,6 +10,10 @@ Welcome to Semprepzie, a comprehensive educational portal designed for students 
 - **3D Effects**: Modern animations and transitions
 - **Responsive Design**: Works on all devices
 
+## 🚀 Live Demo
+
+[View Live Portfolio]( https://mohanmuralikarumuri.github.io/semprepzie/) *(Update with your actual GitHub Pages URL)*
+
 ## Structure
 ```
 semprepzie/
