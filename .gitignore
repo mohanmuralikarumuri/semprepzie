@@ -1,9 +1,6 @@
 node_modules/
 
 # Firebase credentials and sensitive files
-semprepzie-315b1-firebase-adminsdk-fbsvc-3adaf8c8b8.json
-firebase-config.js
-*.json
 
 # Environment variables
 .env
