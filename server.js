@@ -9,22 +9,43 @@ const cron = require('node-cron');
 const axios = require('axios');
 const path = require('path');
 
+// Load environment variables in development
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
+
 const app = express();
 const port = process.env.PORT || 3001;
 
 // Device session storage (in production, use Redis or database)
 const deviceSessions = new Map(); // email -> Set of deviceIds
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK with environment variables
 try {
-    const serviceAccount = require('./semprepzie-315b1-firebase-adminsdk-fbsvc-3adaf8c8b8.json');
+    let credential;
+    
+    if (process.env.FIREBASE_PRIVATE_KEY) {
+        // Use environment variables (production/deployment)
+        credential = admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        });
+    } else {
+        // Fallback to service account file (local development)
+        const serviceAccount = require('./semprepzie-315b1-firebase-adminsdk-fbsvc-3adaf8c8b8.json');
+        credential = admin.credential.cert(serviceAccount);
+    }
+    
     admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: 'semprepzie-315b1'
+        credential: credential,
+        projectId: process.env.FIREBASE_PROJECT_ID || 'semprepzie-315b1'
     });
+    
     console.log('Firebase Admin initialized successfully');
 } catch (error) {
     console.error('Error initializing Firebase Admin:', error);
+    console.log('Please check your Firebase credentials configuration');
 }
 
 // Cron job to keep server alive (prevents Render from sleeping)
