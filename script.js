@@ -1,9 +1,210 @@
-// Valid login IDs
-const validIDs = ['24705A0501','23701A0567','23701A0568','23701A0569','23701A0570','23701A0571','23701A0572','23701A0573','23701A0574','23701A0575','23701A0576','23701A0577','23701A0578','23701A0579','23701A0580','23701A0581','23701A0582','23701A0583','23701A0584','23701A0585','23701A0586','23701A0587','23701A0588','23701A0589','23701A0590', '23701A0591','23701A0592','23701A0593','23701A0594','23701A0595','23701A0596','23701A0597','23701A0598','23701A0599','23701A05A0','23701A05A1','23701A05A2','23701A05A3','23701A05A4','23701A05A5','23701A05A6','23701A05A7','23701A05A8','23701A05A9','23701A05B0','23701A05B1','23701A05B2','23701A05B3','23701A05B4','23701A05B5','23701A05B6','23701A05B7','23701A05C3', '23701A05B8','23701A05B9','23701A05C0','23701A05C1','23701A05C2','23701A05C4', '23701A05C5','23701A05C6','23701A05C7','23701A05C8','23701A05C9','23701A05D0','23701A05D1','24705A0510','24705A0511','24705A0512','24705A0513'];
+// Valid student numbers (extracted from college IDs)
+const validStudentNumbers = [
+    '0501', '0567', '0568', '0569', '0570', '0571', '0572', '0573', '0574', '0575',
+    '0576', '0577', '0578', '0579', '0580', '0581', '0582', '0583', '0584', '0585',
+    '0586', '0587', '0588', '0589', '0590', '0591', '0592', '0593', '0594', '0595',
+    '0596', '0597', '0598', '0599', '05A0', '05A1', '05A2', '05A3', '05A4', '05A5',
+    '05A6', '05A7', '05A8', '05A9', '05B0', '05B1', '05B2', '05B3', '05B4', '05B5',
+    '05B6', '05B7', '05C3', '05B8', '05B9', '05C0', '05C1', '05C2', '05C4', '05C5',
+    '05C6', '05C7', '05C8', '05C9', '05D0', '05D1', '0510', '0511', '0512', '0513'
+];
+
+// College email domain
+const COLLEGE_DOMAIN = '@aitsrajampet.ac.in';
 
 // Theme management
 let currentTheme = 'light';
 let isLoggedIn = false;
+let authMethod = 'firebase'; // Only Firebase now
+
+// Firebase Auth Integration
+let firebaseAuthManager = null;
+
+// Initialize Firebase Auth when available
+window.addEventListener('DOMContentLoaded', () => {
+    // Wait for Firebase Auth to be available
+    setTimeout(() => {
+        if (window.firebaseAuth) {
+            firebaseAuthManager = window.firebaseAuth;
+            
+            // Listen for auth state changes
+            firebaseAuthManager.onAuthStateChange(async (user) => {
+                console.log('Auth state changed:', user ? `${user.email} (verified: ${user.emailVerified})` : 'logged out');
+                
+                if (user) {
+                    // Validate user email domain and student number
+                    const userEmail = user.email || (user.photoURL ? JSON.parse(user.photoURL).email : '');
+                    
+                    if (validateCollegeEmail(userEmail)) {
+                        // Check both email and device verification
+                        const isFullyVerified = await firebaseAuthManager.checkEmailAndDeviceVerification();
+                        
+                        if (isFullyVerified) {
+                            // User is fully authenticated
+                            isLoggedIn = true;
+                            authMethod = 'firebase';
+                            updateAuthenticationControls();
+                            
+                            // Clear any verification prompts
+                            clearVerificationPrompts();
+                            
+                            // Check for requested section
+                            const requestedSection = sessionStorage.getItem('requestedSection');
+                            if (requestedSection) {
+                                sessionStorage.removeItem('requestedSection');
+                                showSection(requestedSection);
+                            }
+                            
+                            console.log('User fully authenticated:', userEmail);
+                        } else {
+                            // Email or device not verified - user cannot access protected content
+                            isLoggedIn = false;
+                            authMethod = 'firebase-pending';
+                            updateAuthenticationControls();
+                            console.log('User signed in but verification incomplete:', userEmail);
+                        }
+                    } else {
+                        // Invalid email - sign out the user
+                        firebaseAuthManager.signOut();
+                        showNotification('Access denied: You are not in the authorized student list.', 'error');
+                    }
+                } else {
+                    isLoggedIn = false;
+                    authMethod = 'none';
+                    updateAuthenticationControls();
+                    
+                    // Clear any verification checkers
+                    if (window.verificationChecker) {
+                        clearInterval(window.verificationChecker);
+                    }
+                }
+            });
+        }
+    }, 1000);
+});
+
+// Setup authentication controls in the navigation
+function setupAuthenticationControls() {
+    const authControls = document.getElementById('authControls');
+    if (authControls) {
+        updateAuthenticationControls();
+    }
+}
+
+// Update authentication controls based on login state
+function updateAuthenticationControls() {
+    const authControls = document.getElementById('authControls');
+    if (!authControls) return;
+    
+    if (isLoggedIn) {
+        // Show logout button
+        authControls.innerHTML = `
+            <div class="user-info">
+                <span class="user-email">${firebaseAuthManager.currentUser?.email || 'User'}</span>
+                <button onclick="handleLogout()" class="auth-btn logout-btn">🚪 Logout</button>
+            </div>
+        `;
+    } else {
+        // Show login button
+        authControls.innerHTML = `
+            <button onclick="showLoginModal()" class="auth-btn login-btn">🔐 Login</button>
+        `;
+    }
+}
+
+// Show login modal when accessing protected content
+function showLoginModal() {
+    // Show login page
+    document.getElementById('mainSite').classList.add('hidden');
+    document.getElementById('loginPage').classList.remove('hidden');
+}
+
+// Handle logout
+async function handleLogout() {
+    if (firebaseAuthManager) {
+        try {
+            await firebaseAuthManager.signOut();
+            isLoggedIn = false;
+            authMethod = 'none';
+            updateAuthenticationControls();
+            showNotification('Logged out successfully! 👋', 'success');
+        } catch (error) {
+            showNotification('Error logging out', 'error');
+        }
+    }
+}
+
+// Check if user is authenticated for protected content
+function requireAuthentication(feature) {
+    if (!isLoggedIn) {
+        showNotification(`Please login to access ${feature}`, 'info');
+        showLoginModal();
+        return false;
+    }
+    return true;
+}
+
+// Protected content access functions
+function accessTheoryContent() {
+    if (requireAuthentication('Theory Content')) {
+        showSection('theory');
+        loadTheoryContent();
+    }
+}
+
+function accessLabContent() {
+    if (requireAuthentication('Lab Materials')) {
+        showSection('lab');
+        loadLabContent();
+    }
+}
+
+function accessMincodeContent() {
+    if (requireAuthentication('Minimized Code')) {
+        showSection('mincode');
+        loadMincodeContent();
+    }
+}
+
+// Show main site (home page is always accessible)
+function showMainSite() {
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('mainSite').classList.remove('hidden');
+    updateAuthenticationControls();
+}
+
+// Show login page
+function showLoginPage() {
+    document.getElementById('mainSite').classList.add('hidden');
+    document.getElementById('loginPage').classList.remove('hidden');
+}
+
+// Email and student number validation functions
+function validateCollegeEmail(email) {
+    if (!email || !email.endsWith(COLLEGE_DOMAIN)) {
+        return false;
+    }
+    
+    // Extract student number from email
+    const studentNumber = extractStudentNumber(email);
+    return validStudentNumbers.includes(studentNumber);
+}
+
+function extractStudentNumber(email) {
+    // Extract the part before @ and get the last 4 characters
+    // e.g., 23701A05B8@aitsrajampet.ac.in -> 05B8
+    const localPart = email.split('@')[0];
+    if (localPart.length >= 4) {
+        return localPart.slice(-4).toUpperCase();
+    }
+    return '';
+}
+
+function getStudentIdFromEmail(email) {
+    // Extract full student ID from email
+    // e.g., 23701A05B8@aitsrajampet.ac.in -> 23701A05B8
+    return email.split('@')[0].toUpperCase();
+}
 
 // Global test function for debugging
 window.testContentLoading = function() {
@@ -27,15 +228,17 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         console.log('Loading screen timeout complete');
         document.getElementById('loadingScreen').classList.add('hidden');
-        document.getElementById('mainSite').classList.remove('hidden');
         
-        // Show home section (no login required for home)
+        // Always show home page first (no login required for home)
+        showMainSite();
         showSection('home');
         
         // Initialize hero effects
         initializeHeroEffects();
         
-        // Do NOT pre-load protected content - let users access it through login
+        // Setup authentication controls
+        setupAuthenticationControls();
+        
     }, 1500);
 
     // Set initial theme
@@ -131,48 +334,418 @@ function createParticle(container) {
     }, animationDuration * 1000);
 }
 
-// Login functionality
-function login() {
-    const input = document.getElementById('loginInput');
-    const errorDiv = document.getElementById('loginError');
-    const enteredID = input.value.trim().toUpperCase();
+// Firebase Authentication Functions
+function showLoginForm() {
+    document.getElementById('loginForm').classList.remove('hidden');
+    document.getElementById('forgotPasswordForm').classList.add('hidden');
+    clearErrorMessages();
+    clearVerificationPrompts();
+    resetFormStates();
+}
 
-    if (validIDs.includes(enteredID)) {
-        // Successful login
-        isLoggedIn = true;
-        document.getElementById('loginPage').classList.add('hidden');
-        document.getElementById('mainSite').classList.remove('hidden');
-        
-        // Update login button
-        updateLoginButton();
-        
-        // Show success notification
-        showLoginNotification('Login successful! Welcome to Semprepzie', 'success');
-        
-        // Return to the section that was requested
-        const requestedSection = sessionStorage.getItem('requestedSection');
-        if (requestedSection) {
-            showSection(requestedSection);
-            sessionStorage.removeItem('requestedSection');
-        } else {
-            showSection('home');
+function showForgotPassword() {
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('forgotPasswordForm').classList.remove('hidden');
+    clearErrorMessages();
+    clearVerificationPrompts();
+}
+
+function showEmailVerificationPrompt(email, type = 'email-verification') {
+    const errorDiv = document.getElementById('loginError') || document.getElementById('phoneError');
+    
+    // Create verification prompt
+    const verificationPrompt = document.createElement('div');
+    verificationPrompt.id = 'verificationPrompt';
+    verificationPrompt.style.cssText = `
+        margin-top: 15px;
+        padding: 20px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-radius: 12px;
+        text-align: center;
+        animation: slideDown 0.3s ease-out;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    `;
+    
+    const isNewDevice = type === 'new-device';
+    const icon = isNewDevice ? '🔐' : '📧';
+    const title = isNewDevice ? 'New Device Verification' : 'Email Verification Required';
+    const message = isNewDevice 
+        ? `Security verification required for this new device`
+        : `Please verify your email address`;
+    
+    verificationPrompt.innerHTML = `
+        <div style="font-size: 32px; margin-bottom: 15px;">${icon}</div>
+        <h4 style="margin: 0 0 10px 0; color: white;">${title}</h4>
+        <p style="margin: 0 0 15px 0; opacity: 0.9; font-size: 14px;">
+            ${message} for <strong>${email}</strong>
+        </p>
+        <p style="margin: 0 0 20px 0; opacity: 0.8; font-size: 13px;">
+            ${isNewDevice 
+                ? 'We\'ve sent a verification email. Please check your inbox and click the link.'
+                : 'Please check your inbox and click the verification link to access your account.'
+            }
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="resendVerificationEmail('${email}')" 
+                    style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                📤 Resend Email
+            </button>
+            <button onclick="checkEmailVerification()" 
+                    style="background: rgba(255,255,255,0.9); color: #059669; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                ✓ I've Verified
+            </button>
+        </div>
+    `;
+    
+    // Remove existing prompts
+    const existingPrompt = document.getElementById('verificationPrompt');
+    if (existingPrompt) {
+        existingPrompt.remove();
+    }
+    
+    // Add new prompt to the appropriate form
+    const targetForm = document.getElementById('loginForm').classList.contains('hidden') 
+        ? document.getElementById('phoneLoginForm') 
+        : document.getElementById('loginForm');
+    targetForm.appendChild(verificationPrompt);
+    
+    // Send verification email automatically if new device
+    if (isNewDevice) {
+        resendVerificationEmail(email);
+    }
+    
+    // Auto-check verification every 5 seconds
+    const verificationChecker = setInterval(async () => {
+        if (firebaseAuthManager && firebaseAuthManager.currentUser) {
+            // Use the enhanced verification check for new devices
+            const isVerified = await firebaseAuthManager.checkEmailAndDeviceVerification();
+            
+            if (isVerified) {
+                clearInterval(verificationChecker);
+                verificationPrompt.remove();
+                
+                // Update login state
+                isLoggedIn = true;
+                authMethod = 'firebase';
+                
+                // Show main site and check for requested section
+                showMainSite();
+                updateAuthenticationControls();
+                
+                const requestedSection = sessionStorage.getItem('requestedSection');
+                if (requestedSection) {
+                    sessionStorage.removeItem('requestedSection');
+                    showSection(requestedSection);
+                }
+                
+                showNotification('Verification successful! Welcome to Semprepzie! 🎉', 'success');
+            }
         }
-    } else {
-        // Failed login
-        errorDiv.textContent = 'Invalid ID. Please enter ID';
-        input.style.borderColor = '#ef4444';
-        input.value = '';
-        
-        // Reset error after 3 seconds
-        setTimeout(() => {
-            errorDiv.textContent = '';
-            input.style.borderColor = 'var(--border-color)';
-        }, 3000);
+    }, 5000);
+    
+    // Store checker to clear it later
+    window.verificationChecker = verificationChecker;
+}
+
+async function resendVerificationEmail(email) {
+    if (firebaseAuthManager) {
+        try {
+            const result = await firebaseAuthManager.sendEmailVerification();
+            if (result.success) {
+                showNotification('Verification email sent! 📧', 'success');
+            } else {
+                showNotification('Failed to send verification email', 'error');
+            }
+        } catch (error) {
+            showNotification('Failed to send verification email', 'error');
+        }
     }
 }
 
-// Show login notification
-function showLoginNotification(message, type) {
+async function checkEmailVerification() {
+    if (firebaseAuthManager) {
+        try {
+            await firebaseAuthManager.currentUser.reload();
+            if (firebaseAuthManager.isEmailVerified()) {
+                // Clear verification prompts
+                clearVerificationPrompts();
+                showMainSite();
+                showNotification('Email verified successfully! Welcome to Semprepzie! 🎉', 'success');
+            } else {
+                showNotification('Email not yet verified. Please check your inbox.', 'warning');
+            }
+        } catch (error) {
+            showNotification('Failed to check verification status', 'error');
+        }
+    }
+}
+
+async function checkEmailVerification() {
+    if (firebaseAuthManager && firebaseAuthManager.getCurrentUser()) {
+        // Use the enhanced verification check
+        const isVerified = await firebaseAuthManager.checkEmailAndDeviceVerification();
+        
+        if (isVerified) {
+            const verificationPrompt = document.getElementById('verificationPrompt');
+            if (verificationPrompt) {
+                verificationPrompt.remove();
+            }
+            if (window.verificationChecker) {
+                clearInterval(window.verificationChecker);
+            }
+            
+            // Update login state
+            isLoggedIn = true;
+            authMethod = 'firebase';
+            
+            // Show main site and update controls
+            showMainSite();
+            updateAuthenticationControls();
+            
+            // Check for requested section
+            const requestedSection = sessionStorage.getItem('requestedSection');
+            if (requestedSection) {
+                sessionStorage.removeItem('requestedSection');
+                showSection(requestedSection);
+            }
+            
+            showNotification('Email verified! Welcome to Semprepzie! 🎉', 'success');
+        } else {
+            showNotification('Email not yet verified. Please check your inbox and click the verification link.', 'error');
+        }
+    }
+}
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+
+    if (!email || !password) {
+        showError(errorDiv, 'Please enter both email and password');
+        return;
+    }
+
+    // Validate college email domain
+    if (!email.endsWith(COLLEGE_DOMAIN)) {
+        showError(errorDiv, `Please use your college email ending with ${COLLEGE_DOMAIN}`);
+        return;
+    }
+
+    // Validate student number
+    if (!validateCollegeEmail(email)) {
+        const studentNumber = extractStudentNumber(email);
+        showError(errorDiv, `Access denied: Student number "${studentNumber}" is not in the authorized list.`);
+        return;
+    }
+
+    if (!firebaseAuthManager) {
+        showError(errorDiv, 'Authentication system not ready. Please try again.');
+        return;
+    }
+
+    try {
+        showLoading(true);
+        console.log(`Attempting login for: ${email}`);
+        
+        const result = await firebaseAuthManager.signIn(email, password);
+        console.log('Login result:', result);
+        
+        if (result.success) {
+            if (result.requiresVerification) {
+                // User needs email verification
+                console.log('Email verification required');
+                showEmailVerificationPrompt(email, result.isNewDevice ? 'new-device' : 'email-verification');
+                
+                if (result.isNewDevice) {
+                    showNotification('🔐 New device detected! Please verify your email to continue. Other devices have been logged out for security.', 'info');
+                } else {
+                    showNotification('📧 Please verify your email to access all features.', 'info');
+                }
+            } else {
+                // Login successful and verified
+                console.log('Login successful, user verified');
+                clearErrorMessages();
+                showMainSite();
+                isLoggedIn = true;
+                authMethod = 'firebase';
+                updateAuthenticationControls();
+                
+                // Check for requested section
+                const requestedSection = sessionStorage.getItem('requestedSection');
+                if (requestedSection) {
+                    sessionStorage.removeItem('requestedSection');
+                    showSection(requestedSection);
+                    showNotification(`✅ Login successful! Loading ${requestedSection}...`, 'success');
+                } else {
+                    showNotification('✅ Login successful! Welcome back! 🎉', 'success');
+                }
+            }
+        } else {
+            showError(errorDiv, result.error);
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showError(errorDiv, 'Login failed. Please try again.');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function handlePasswordReset() {
+    const email = document.getElementById('resetEmail').value.trim();
+    const errorDiv = document.getElementById('resetError');
+    const successDiv = document.getElementById('resetSuccess');
+
+    if (!email) {
+        showError(errorDiv, 'Please enter your email address');
+        return;
+    }
+
+    // Validate college email domain
+    if (!email.endsWith(COLLEGE_DOMAIN)) {
+        showError(errorDiv, `Please use your college email ending with ${COLLEGE_DOMAIN}`);
+        return;
+    }
+
+    if (!firebaseAuthManager) {
+        showError(errorDiv, 'Authentication system not ready. Please try again.');
+        return;
+    }
+
+    try {
+        showLoading(true);
+        const result = await firebaseAuthManager.resetPassword(email);
+        
+        if (result.success) {
+            showSuccess(successDiv, 'Password reset email sent! Check your inbox.');
+            errorDiv.textContent = '';
+        } else {
+            showError(errorDiv, result.error);
+        }
+    } catch (error) {
+        showError(errorDiv, 'Failed to send reset email. Please try again.');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Logout function
+async function logout() {
+    try {
+        if (firebaseAuthManager) {
+            await firebaseAuthManager.signOut();
+        }
+        
+        isLoggedIn = false;
+        authMethod = 'none';
+        showLoginPage();
+        clearProtectedContent();
+        showNotification('Logged out successfully', 'success');
+    } catch (error) {
+        console.error('Logout error:', error);
+        showNotification('Logout failed', 'error');
+    }
+}
+
+// UI Helper Functions
+function showError(element, message) {
+    if (element) {
+        element.textContent = message;
+        element.style.color = '#ef4444';
+    }
+}
+
+function showSuccess(element, message) {
+    if (element) {
+        element.textContent = message;
+        element.style.color = '#10b981';
+    }
+}
+
+function clearVerificationPrompts() {
+    const verificationPrompt = document.getElementById('verificationPrompt');
+    if (verificationPrompt) {
+        verificationPrompt.remove();
+    }
+    
+    if (window.verificationChecker) {
+        clearInterval(window.verificationChecker);
+        window.verificationChecker = null;
+    }
+}
+
+function clearErrorMessages() {
+    const errorElements = document.querySelectorAll('.error-message, .success-message');
+    errorElements.forEach(el => el.textContent = '');
+}
+
+function clearVerificationPrompts() {
+    const verificationPrompts = document.querySelectorAll('#verificationPrompt');
+    verificationPrompts.forEach(prompt => prompt.remove());
+}
+
+function resetFormStates() {
+    // Clear form values
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    
+    if (loginEmail) loginEmail.value = '';
+    if (loginPassword) loginPassword.value = '';
+    
+    // Clear any pending sessions
+    window.pendingPhoneEmail = null;
+}
+
+function showLoading(show) {
+    const buttons = document.querySelectorAll('.auth-btn');
+    buttons.forEach(btn => {
+        btn.disabled = show;
+        btn.textContent = show ? 'Loading...' : btn.getAttribute('data-original-text') || btn.textContent;
+        if (!show && !btn.getAttribute('data-original-text')) {
+            btn.setAttribute('data-original-text', btn.textContent);
+        }
+    });
+}
+
+function showMainSite() {
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('mainSite').classList.remove('hidden');
+    
+    const requestedSection = sessionStorage.getItem('requestedSection');
+    if (requestedSection) {
+        showSection(requestedSection);
+        sessionStorage.removeItem('requestedSection');
+    } else {
+        showSection('home');
+    }
+}
+
+function showLoginPage() {
+    document.getElementById('loginPage').classList.remove('hidden');
+    document.getElementById('mainSite').classList.add('hidden');
+}
+
+// Load protected content
+function loadProtectedContent() {
+    loadTheoryContent();
+    loadLabContent();
+    loadMincodeContent();
+}
+
+// Clear protected content
+function clearProtectedContent() {
+    const theoryContent = document.getElementById('theoryContent');
+    const labContent = document.getElementById('labContent');
+    const mincodeContent = document.getElementById('mincodeContent');
+    
+    if (theoryContent) theoryContent.innerHTML = '<p>Please login to access content</p>';
+    if (labContent) labContent.innerHTML = '<p>Please login to access content</p>';
+    if (mincodeContent) mincodeContent.innerHTML = '<p>Please login to access content</p>';
+}
+
+// Show notification
+function showNotification(message, type) {
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -207,64 +780,46 @@ function showLoginNotification(message, type) {
     }, 3000);
 }
 
+// Legacy notification function (kept for compatibility)
+function showLoginNotification(message, type) {
+    showNotification(message, type);
+}
+
 // Allow Enter key for login
 document.addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && !document.getElementById('loginPage').classList.contains('hidden')) {
-        login();
+        const activeForm = document.querySelector('.auth-form:not(.hidden)');
+        if (activeForm) {
+            if (activeForm.id === 'loginForm') {
+                handleLogin();
+            } else if (activeForm.id === 'phoneLoginForm') {
+                // Check if OTP section is visible
+                const otpSection = document.getElementById('otpSection');
+                if (!otpSection.classList.contains('hidden')) {
+                    verifyPhoneOTP();
+                } else {
+                    sendPhoneOTP();
+                }
+            } else if (activeForm.id === 'forgotPasswordForm') {
+                handlePasswordReset();
+            }
+        }
     }
 });
 
-// Logout functionality
-function logout() {
-    isLoggedIn = false;
-    updateLoginButton();
-    showLoginNotification('Logged out successfully', 'success');
-    showSection('home');
-    
-    // Clear protected content
-    clearProtectedContent();
-    
-    // Reset login form
-    const loginInput = document.getElementById('loginInput');
-    const errorDiv = document.getElementById('loginError');
-    if (loginInput) loginInput.value = '';
-    if (errorDiv) errorDiv.textContent = '';
-    
-    // Remove access message if it exists
-    const accessMessage = document.getElementById('accessMessage');
-    if (accessMessage) {
-        accessMessage.remove();
-    }
-    
-    // Reset login page title
-    const loginContainer = document.querySelector('.login-container h1');
-    if (loginContainer) {
-        loginContainer.innerHTML = `🎓 Welcome to Semprepzie`;
-    }
-}
+// Logout functionality (now handled by the main logout function)
+// function logout() - removed, using the updated logout function above
 
-// Add login/logout button to navigation
+// Add login/logout button to navigation  
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
-        const themeToggle = document.querySelector('.theme-toggle');
-        if (themeToggle) {
-            const loginButton = document.createElement('div');
-            loginButton.className = 'login-toggle';
-            loginButton.innerHTML = `
-                <button id="loginToggle" onclick="toggleLogin()" style="
-                    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    font-weight: 500;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
-                ">🔐 Login</button>
+        const authControls = document.getElementById('authControls');
+        if (authControls && !isLoggedIn) {
+            authControls.innerHTML = `
+                <button id="loginToggle" onclick="toggleLogin()" class="login-btn">
+                    🔐 Login
+                </button>
             `;
-            themeToggle.parentNode.insertBefore(loginButton, themeToggle);
         }
     }, 100);
 });
@@ -304,9 +859,12 @@ function updateLoginButton() {
 function showSection(sectionName) {
     // Check if section requires login
     if ((sectionName === 'theory' || sectionName === 'lab' || sectionName === 'mincode') && !isLoggedIn) {
-        // Store the requested section and show login page
+        // Store the requested section and show login modal
         sessionStorage.setItem('requestedSection', sectionName);
-        showLoginPrompt(sectionName);
+        const sectionDisplayName = sectionName === 'theory' ? 'Theory Content' : 
+                                   sectionName === 'lab' ? 'Lab Materials' : 'Minimized Code';
+        showNotification(`Please login to access ${sectionDisplayName}`, 'info');
+        showLoginModal();
         return;
     }
     
@@ -360,7 +918,8 @@ function showSection(sectionName) {
 
 // Show login prompt when trying to access restricted sections
 function showLoginPrompt(sectionName) {
-    const sectionTitle = sectionName === 'theory' ? 'Theory Courses' : 'Lab Materials';
+    const sectionTitle = sectionName === 'theory' ? 'Theory Courses' : 
+                        sectionName === 'lab' ? 'Lab Materials' : 'Minimized Code';
     
     document.getElementById('mainSite').classList.add('hidden');
     document.getElementById('loginPage').classList.remove('hidden');
@@ -387,25 +946,31 @@ function showLoginPrompt(sectionName) {
             box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         `;
         
-        const loginForm = document.querySelector('.login-form');
-        loginForm.insertBefore(accessMessage, loginForm.firstChild);
+        const loginContainer = document.querySelector('.login-container');
+        const authToggle = document.querySelector('.auth-toggle');
+        if (authToggle) {
+            loginContainer.insertBefore(accessMessage, authToggle);
+        }
     }
+    
+    const sectionEmoji = sectionName === 'theory' ? '📚' : 
+                        sectionName === 'lab' ? '🔬' : '💻';
     
     accessMessage.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px;">
-            <span style="font-size: 18px;">${sectionName === 'theory' ? '📚' : '🔬'}</span>
+            <span style="font-size: 18px;">${sectionEmoji}</span>
             <strong>Accessing ${sectionTitle}</strong>
         </div>
         <div style="opacity: 0.9; font-size: 13px;">
-            Please login with your student ID to continue
+            Please login with your college email to continue to ${sectionTitle}
         </div>
     `;
     
-    // Focus on input field
+    // Focus on email input field
     setTimeout(() => {
-        const loginInput = document.getElementById('loginInput');
-        if (loginInput) {
-            loginInput.focus();
+        const emailInput = document.getElementById('loginEmail');
+        if (emailInput) {
+            emailInput.focus();
         }
     }, 100);
 }
@@ -2690,23 +3255,28 @@ function addParticleExplosion() {
 
 // Add random special effects
 function addRandomEffects() {
-    const cards = document.querySelectorAll('.course-card');
-    
     setInterval(() => {
         if (Math.random() > 0.8) {
-            const randomCard = cards[Math.floor(Math.random() * cards.length)];
-            
-            // Random effect selection
-            const effects = ['energy-pulse', 'holographic', 'glitch'];
-            const randomEffect = effects[Math.floor(Math.random() * effects.length)];
-            
-            randomCard.classList.add(randomEffect);
-            
-            setTimeout(() => {
-                randomCard.classList.remove(randomEffect);
-            }, 2000);
+            const cards = document.querySelectorAll('.course-card');
+            if (cards.length > 0) {
+                const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                
+                // Random effect selection
+                const effects = ['energy-pulse', 'holographic', 'glitch'];
+                const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+                
+                if (randomCard && randomCard.classList) {
+                    randomCard.classList.add(randomEffect);
+                    
+                    setTimeout(() => {
+                        if (randomCard && randomCard.classList) {
+                            randomCard.classList.remove(randomEffect);
+                        }
+                    }, 2000);
+                }
+            }
         }
-    }, 5000);
+    }, 3000);
 }
 
 // Initialize all interactive effects

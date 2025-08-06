@@ -4,15 +4,46 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { body, validationResult } = require('express-validator');
+const admin = require('firebase-admin');
+const cron = require('node-cron');
+const axios = require('axios');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+// Device session storage (in production, use Redis or database)
+const deviceSessions = new Map(); // email -> Set of deviceIds
+
+// Initialize Firebase Admin SDK
+try {
+    const serviceAccount = require('./semprepzie-315b1-firebase-adminsdk-fbsvc-3adaf8c8b8.json');
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: 'semprepzie-315b1'
+    });
+    console.log('Firebase Admin initialized successfully');
+} catch (error) {
+    console.error('Error initializing Firebase Admin:', error);
+}
+
+// Cron job to keep server alive (prevents Render from sleeping)
+cron.schedule('*/14 * * * *', async () => {
+    try {
+        const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
+        await axios.get(`${url}/api/health`);
+        console.log(`Keep-alive ping sent at ${new Date().toISOString()}`);
+    } catch (error) {
+        console.error('Keep-alive ping failed:', error.message);
+    }
+});
 
 // Middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static('.'));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -24,7 +55,7 @@ const limiter = rateLimit({
 });
 
 // Email configuration
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER || 'your-email@gmail.com',
@@ -47,6 +78,137 @@ const validateContactForm = [
         .isLength({ min: 10, max: 1000 })
         .withMessage('Message must be between 10 and 1000 characters')
 ];
+
+// Firebase Auth middleware
+const authenticateToken = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.split(' ')[1];
+
+        if (!token) {
+            return res.status(401).json({ error: 'Access token required' });
+        }
+
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        req.user = decodedToken;
+        next();
+    } catch (error) {
+        console.error('Token verification failed:', error);
+        return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+};
+
+// Auth endpoints
+app.post('/api/auth/verify-token', async (req, res) => {
+    try {
+        const { token } = req.body;
+        
+        if (!token) {
+            return res.status(400).json({ error: 'Token is required' });
+        }
+
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        res.json({ 
+            valid: true, 
+            uid: decodedToken.uid,
+            email: decodedToken.email 
+        });
+    } catch (error) {
+        console.error('Token verification error:', error);
+        res.status(401).json({ error: 'Invalid token' });
+    }
+});
+
+// Device management endpoint
+app.post('/api/logout-other-devices', async (req, res) => {
+    try {
+        const { email, currentDeviceId } = req.body;
+        
+        if (!email || !currentDeviceId) {
+            return res.status(400).json({ error: 'Email and device ID are required' });
+        }
+        
+        // Get current sessions for this email
+        const userSessions = deviceSessions.get(email) || new Set();
+        console.log(`Logout request - Email: ${email}, Current sessions:`, Array.from(userSessions));
+        
+        // Count sessions before clearing
+        const sessionCount = userSessions.size;
+        
+        // Remove all sessions except current device
+        userSessions.clear();
+        userSessions.add(currentDeviceId);
+        deviceSessions.set(email, userSessions);
+        
+        console.log(`Logged out ${sessionCount - 1} other devices for ${email}, keeping device: ${currentDeviceId}`);
+        res.json({ 
+            success: true, 
+            message: `Logged out ${sessionCount - 1} other devices`,
+            remainingDevices: 1,
+            currentDevice: currentDeviceId
+        });
+    } catch (error) {
+        console.error('Device logout error:', error);
+        res.status(500).json({ error: 'Failed to logout other devices' });
+    }
+});
+
+// Register device session
+app.post('/api/register-device', async (req, res) => {
+    try {
+        const { email, deviceId } = req.body;
+        
+        if (!email || !deviceId) {
+            return res.status(400).json({ error: 'Email and device ID are required' });
+        }
+        
+        // Get or create sessions for this email
+        const userSessions = deviceSessions.get(email) || new Set();
+        userSessions.add(deviceId);
+        deviceSessions.set(email, userSessions);
+        
+        res.json({ success: true, deviceCount: userSessions.size });
+    } catch (error) {
+        console.error('Device registration error:', error);
+        res.status(500).json({ error: 'Failed to register device' });
+    }
+});
+
+// Check if user has multiple devices
+app.post('/api/check-devices', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        
+        const userSessions = deviceSessions.get(email) || new Set();
+        const hasMultipleDevices = userSessions.size > 1;
+        
+        res.json({ hasMultipleDevices, deviceCount: userSessions.size });
+    } catch (error) {
+        console.error('Device check error:', error);
+        res.status(500).json({ error: 'Failed to check devices' });
+    }
+});
+
+// Get user profile (protected route)
+app.get('/api/auth/profile', authenticateToken, async (req, res) => {
+    try {
+        const userRecord = await admin.auth().getUser(req.user.uid);
+        res.json({
+            uid: userRecord.uid,
+            email: userRecord.email,
+            displayName: userRecord.displayName,
+            emailVerified: userRecord.emailVerified,
+            creationTime: userRecord.metadata.creationTime
+        });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ error: 'Failed to fetch user profile' });
+    }
+});
 
 // Contact form endpoint
 app.post('/api/contact', limiter, validateContactForm, async (req, res) => {
@@ -189,7 +351,19 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        service: 'Semprepzie Contact API'
+        service: 'Semprepzie Contact API',
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        version: '1.0.0',
+        firebase: admin.apps.length > 0 ? 'connected' : 'disconnected'
+    });
+});
+
+// Keep-alive endpoint specifically for cron
+app.get('/api/ping', (req, res) => {
+    res.json({ 
+        status: 'alive', 
+        timestamp: new Date().toISOString() 
     });
 });
 
@@ -206,8 +380,15 @@ app.use((error, req, res, next) => {
 
 // Start server
 app.listen(port, () => {
-    console.log(`Semprepzie Contact API running on port ${port}`);
-    console.log(`Health check: http://localhost:${port}/api/health`);
+    console.log(`🚀 Semprepzie Contact API running on port ${port}`);
+    console.log(`📋 Health check: http://localhost:${port}/api/health`);
+    console.log(`🔐 Firebase Auth: ${admin.apps.length > 0 ? 'Connected' : 'Disconnected'}`);
+    console.log(`⏰ Cron job: Keep-alive pings every 14 minutes`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+    
+    if (process.env.RENDER_EXTERNAL_URL) {
+        console.log(`🔗 External URL: ${process.env.RENDER_EXTERNAL_URL}`);
+    }
 });
 
 module.exports = app;

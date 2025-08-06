@@ -6,6 +6,7 @@
     <title>Semprepzie - Educational Portal</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="animations.css">
+    <link rel="stylesheet" href="auth-styles.css">
 </head>
 <body>
     <!-- Loading Screen -->
@@ -24,11 +25,34 @@
     <div id="loginPage" class="login-page hidden">
         <div class="login-container">
             <h1>🎓 Welcome to Semprepzie</h1>
-            <div class="login-form">
-                <input type="text" id="loginInput" placeholder="Enter your ID...." maxlength="10">
-                <button onclick="login()">Login</button>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <h3>Login to Your Account</h3>
+                <input type="email" id="loginEmail" placeholder="Your College Email (@aitsrajampet.ac.in)" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button onclick="handleLogin()" class="auth-btn">🚀 Login</button>
+                <div class="auth-links">
+                    <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
+                </div>
                 <div id="loginError" class="error-message"></div>
             </div>
+
+            <!-- Forgot Password Form -->
+            <div id="forgotPasswordForm" class="auth-form hidden">
+                <h3>Reset Password</h3>
+                <p>Enter your email address to receive a password reset link.</p>
+                <input type="email" id="resetEmail" placeholder="Email Address" required>
+                <button onclick="handlePasswordReset()" class="auth-btn">Send Reset Link</button>
+                <div class="auth-links">
+                    <a href="#" onclick="showLoginForm()">Back to Login</a>
+                </div>
+                <div id="resetError" class="error-message"></div>
+                <div id="resetSuccess" class="success-message"></div>
+            </div>
+
+            <!-- Legacy ID Login for Backward Compatibility -->
+            <!-- Removed - Now using only Firebase with domain validation -->
         </div>
     </div>
 
@@ -54,6 +78,9 @@
                     <span></span>
                 </div>
                 <div class="nav-controls">
+                    <div id="authControls" class="auth-controls">
+                        <!-- Authentication controls will be inserted here -->
+                    </div>
                     <div class="theme-toggle">
                         <button id="themeToggle" onclick="toggleTheme()">🌙</button>
                     </div>
@@ -313,6 +340,14 @@
         </div>
     </div>
 
+    <!-- Firebase SDK via CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Main Scripts -->
     <script src="script.js"></script>
 </body>
 </html>
