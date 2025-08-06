@@ -36,8 +36,32 @@ window.addEventListener('DOMContentLoaded', () => {
                     const userEmail = user.email || (user.photoURL ? JSON.parse(user.photoURL).email : '');
                     
                     if (validateCollegeEmail(userEmail)) {
-                        // Check both email and device verification
-                        const isFullyVerified = await firebaseAuthManager.checkEmailAndDeviceVerification();
+                        // For auto-login (page load), check if this is a new device
+                        const isNewDevice = firebaseAuthManager.isNewDevice();
+                        const deviceVerified = firebaseAuthManager.isCurrentDeviceVerified();
+                        
+                        console.log('Auto-login check:', { 
+                            isNewDevice, 
+                            deviceVerified, 
+                            emailVerified: user.emailVerified,
+                            email: userEmail 
+                        });
+                        
+                        // If it's a new device, don't auto-login - require proper verification flow
+                        if (isNewDevice && !deviceVerified) {
+                            console.log('New device detected on auto-login - requiring manual verification');
+                            isLoggedIn = false;
+                            authMethod = 'firebase-pending';
+                            updateAuthenticationControls();
+                            
+                            // Show login page to force proper verification flow
+                            showLoginPage();
+                            showNotification('🔐 New device detected. Please log in to verify this device.', 'info');
+                            return;
+                        }
+                        
+                        // Check both email and device verification for existing devices
+                        const isFullyVerified = await firebaseAuthManager.checkEmailAndDeviceVerification(false);
                         
                         if (isFullyVerified) {
                             // User is fully authenticated
@@ -413,17 +437,29 @@ function showEmailVerificationPrompt(email, type = 'email-verification') {
     // Send verification email automatically if new device
     if (isNewDevice) {
         resendVerificationEmail(email);
+        
+        // Start monitoring for email verification on new devices
+        if (firebaseAuthManager && firebaseAuthManager.startEmailVerificationMonitoring) {
+            firebaseAuthManager.startEmailVerificationMonitoring();
+        }
     }
     
     // Auto-check verification every 5 seconds
     const verificationChecker = setInterval(async () => {
         if (firebaseAuthManager && firebaseAuthManager.currentUser) {
             // Use the enhanced verification check for new devices
-            const isVerified = await firebaseAuthManager.checkEmailAndDeviceVerification();
+            const isVerified = isNewDevice 
+                ? await firebaseAuthManager.checkVerificationComplete()
+                : await firebaseAuthManager.checkEmailAndDeviceVerification();
             
             if (isVerified) {
                 clearInterval(verificationChecker);
                 verificationPrompt.remove();
+                
+                // Stop monitoring if it was started
+                if (firebaseAuthManager.stopEmailVerificationMonitoring) {
+                    firebaseAuthManager.stopEmailVerificationMonitoring();
+                }
                 
                 // Update login state
                 isLoggedIn = true;
@@ -467,9 +503,19 @@ async function checkEmailVerification() {
     if (firebaseAuthManager) {
         try {
             await firebaseAuthManager.currentUser.reload();
-            if (firebaseAuthManager.isEmailVerified()) {
+            
+            // Use the enhanced verification check that handles new devices
+            const isVerified = await firebaseAuthManager.checkVerificationComplete();
+            
+            if (isVerified) {
                 // Clear verification prompts
                 clearVerificationPrompts();
+                
+                // Stop monitoring if it was started
+                if (firebaseAuthManager.stopEmailVerificationMonitoring) {
+                    firebaseAuthManager.stopEmailVerificationMonitoring();
+                }
+                
                 showMainSite();
                 showNotification('Email verified successfully! Welcome to Semprepzie! 🎉', 'success');
             } else {
@@ -673,16 +719,16 @@ function clearVerificationPrompts() {
         clearInterval(window.verificationChecker);
         window.verificationChecker = null;
     }
+    
+    // Stop email verification monitoring if it's running
+    if (firebaseAuthManager && firebaseAuthManager.stopEmailVerificationMonitoring) {
+        firebaseAuthManager.stopEmailVerificationMonitoring();
+    }
 }
 
 function clearErrorMessages() {
     const errorElements = document.querySelectorAll('.error-message, .success-message');
     errorElements.forEach(el => el.textContent = '');
-}
-
-function clearVerificationPrompts() {
-    const verificationPrompts = document.querySelectorAll('#verificationPrompt');
-    verificationPrompts.forEach(prompt => prompt.remove());
 }
 
 function resetFormStates() {

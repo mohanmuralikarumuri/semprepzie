@@ -9,43 +9,19 @@ const cron = require('node-cron');
 const axios = require('axios');
 const path = require('path');
 
-// Load environment variables in development
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-}
-
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Device session storage (in production, use Redis or database)
-const deviceSessions = new Map(); // email -> Set of deviceIds
-
-// Initialize Firebase Admin SDK with environment variables
+// Initialize Firebase Admin SDK
 try {
-    let credential;
-    
-    if (process.env.FIREBASE_PRIVATE_KEY) {
-        // Use environment variables (production/deployment)
-        credential = admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        });
-    } else {
-        // Fallback to service account file (local development)
-        const serviceAccount = require('./semprepzie-315b1-firebase-adminsdk-fbsvc-3adaf8c8b8.json');
-        credential = admin.credential.cert(serviceAccount);
-    }
-    
+    const serviceAccount = require('./semprepzie-315b1-firebase-adminsdk-fbsvc-3adaf8c8b8.json');
     admin.initializeApp({
-        credential: credential,
-        projectId: process.env.FIREBASE_PROJECT_ID || 'semprepzie-315b1'
+        credential: admin.credential.cert(serviceAccount),
+        projectId: 'semprepzie-315b1'
     });
-    
     console.log('Firebase Admin initialized successfully');
 } catch (error) {
     console.error('Error initializing Firebase Admin:', error);
-    console.log('Please check your Firebase credentials configuration');
 }
 
 // Cron job to keep server alive (prevents Render from sleeping)
@@ -140,80 +116,6 @@ app.post('/api/auth/verify-token', async (req, res) => {
     }
 });
 
-// Device management endpoint
-app.post('/api/logout-other-devices', async (req, res) => {
-    try {
-        const { email, currentDeviceId } = req.body;
-        
-        if (!email || !currentDeviceId) {
-            return res.status(400).json({ error: 'Email and device ID are required' });
-        }
-        
-        // Get current sessions for this email
-        const userSessions = deviceSessions.get(email) || new Set();
-        console.log(`Logout request - Email: ${email}, Current sessions:`, Array.from(userSessions));
-        
-        // Count sessions before clearing
-        const sessionCount = userSessions.size;
-        
-        // Remove all sessions except current device
-        userSessions.clear();
-        userSessions.add(currentDeviceId);
-        deviceSessions.set(email, userSessions);
-        
-        console.log(`Logged out ${sessionCount - 1} other devices for ${email}, keeping device: ${currentDeviceId}`);
-        res.json({ 
-            success: true, 
-            message: `Logged out ${sessionCount - 1} other devices`,
-            remainingDevices: 1,
-            currentDevice: currentDeviceId
-        });
-    } catch (error) {
-        console.error('Device logout error:', error);
-        res.status(500).json({ error: 'Failed to logout other devices' });
-    }
-});
-
-// Register device session
-app.post('/api/register-device', async (req, res) => {
-    try {
-        const { email, deviceId } = req.body;
-        
-        if (!email || !deviceId) {
-            return res.status(400).json({ error: 'Email and device ID are required' });
-        }
-        
-        // Get or create sessions for this email
-        const userSessions = deviceSessions.get(email) || new Set();
-        userSessions.add(deviceId);
-        deviceSessions.set(email, userSessions);
-        
-        res.json({ success: true, deviceCount: userSessions.size });
-    } catch (error) {
-        console.error('Device registration error:', error);
-        res.status(500).json({ error: 'Failed to register device' });
-    }
-});
-
-// Check if user has multiple devices
-app.post('/api/check-devices', async (req, res) => {
-    try {
-        const { email } = req.body;
-        
-        if (!email) {
-            return res.status(400).json({ error: 'Email is required' });
-        }
-        
-        const userSessions = deviceSessions.get(email) || new Set();
-        const hasMultipleDevices = userSessions.size > 1;
-        
-        res.json({ hasMultipleDevices, deviceCount: userSessions.size });
-    } catch (error) {
-        console.error('Device check error:', error);
-        res.status(500).json({ error: 'Failed to check devices' });
-    }
-});
-
 // Get user profile (protected route)
 app.get('/api/auth/profile', authenticateToken, async (req, res) => {
     try {
@@ -228,6 +130,85 @@ app.get('/api/auth/profile', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Error fetching user profile:', error);
         res.status(500).json({ error: 'Failed to fetch user profile' });
+    }
+});
+
+// Device Management Endpoints
+// Device session storage (in-memory for now, use database in production)
+const deviceSessions = new Map();
+
+// Register device
+app.post('/api/register-device', async (req, res) => {
+    try {
+        const { email, deviceId } = req.body;
+        
+        if (!email || !deviceId) {
+            return res.status(400).json({ error: 'Email and deviceId are required' });
+        }
+
+        // Store device session
+        if (!deviceSessions.has(email)) {
+            deviceSessions.set(email, new Set());
+        }
+        deviceSessions.get(email).add(deviceId);
+
+        console.log(`Device registered: ${deviceId} for ${email}`);
+        res.json({ success: true, deviceId, email });
+    } catch (error) {
+        console.error('Device registration error:', error);
+        res.status(500).json({ error: 'Failed to register device' });
+    }
+});
+
+// Check device count
+app.post('/api/check-devices', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+
+        const devices = deviceSessions.get(email) || new Set();
+        const deviceCount = devices.size;
+        const hasMultipleDevices = deviceCount > 1;
+
+        res.json({
+            hasMultipleDevices,
+            deviceCount,
+            devices: Array.from(devices)
+        });
+    } catch (error) {
+        console.error('Device check error:', error);
+        res.status(500).json({ error: 'Failed to check devices' });
+    }
+});
+
+// Logout other devices
+app.post('/api/logout-other-devices', async (req, res) => {
+    try {
+        const { email, currentDeviceId } = req.body;
+        
+        if (!email || !currentDeviceId) {
+            return res.status(400).json({ error: 'Email and currentDeviceId are required' });
+        }
+
+        // Clear all devices except current one
+        const devices = deviceSessions.get(email) || new Set();
+        const otherDevices = Array.from(devices).filter(id => id !== currentDeviceId);
+        
+        // Keep only current device
+        deviceSessions.set(email, new Set([currentDeviceId]));
+
+        console.log(`Logged out ${otherDevices.length} other devices for ${email}`);
+        res.json({ 
+            success: true, 
+            loggedOutDevices: otherDevices.length,
+            currentDevice: currentDeviceId 
+        });
+    } catch (error) {
+        console.error('Logout other devices error:', error);
+        res.status(500).json({ error: 'Failed to logout other devices' });
     }
 });
 
