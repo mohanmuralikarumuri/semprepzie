@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semprepzie - Educational Portal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="animations.css">
     <link rel="stylesheet" href="auth-styles.css">
@@ -31,9 +32,9 @@
                 <h3>Login to Your Account</h3>
                 <input type="email" id="loginEmail" placeholder="Your College Email (@aitsrajampet.ac.in)" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
-                <button onclick="handleLogin()" class="auth-btn">🚀 Login</button>
+                <button id="loginBtn" class="auth-btn">🚀 Login</button>
                 <div class="auth-links">
-                    <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
+                    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
                 </div>
                 <div id="loginError" class="error-message"></div>
             </div>
@@ -43,9 +44,9 @@
                 <h3>Reset Password</h3>
                 <p>Enter your email address to receive a password reset link.</p>
                 <input type="email" id="resetEmail" placeholder="Email Address" required>
-                <button onclick="handlePasswordReset()" class="auth-btn">Send Reset Link</button>
+                <button id="resetPasswordBtn" class="auth-btn">Send Reset Link</button>
                 <div class="auth-links">
-                    <a href="#" onclick="showLoginForm()">Back to Login</a>
+                    <a href="#" id="backToLoginLink">Back to Login</a>
                 </div>
                 <div id="resetError" class="error-message"></div>
                 <div id="resetSuccess" class="success-message"></div>
@@ -65,14 +66,14 @@
                     <h1>🎓 Semprepzie</h1>
                 </div>
                 <ul class="nav-menu">
-                    <li><a href="#" onclick="showSection('home')">Home</a></li>
-                    <li><a href="#" onclick="showSection('theory')">Theory</a></li>
-                    <li><a href="#" onclick="showSection('lab')">Lab Materials</a></li>
-                    <li><a href="#" onclick="showSection('mincode')">Minimized Code</a></li>
-                    <li><a href="#about-section" onclick="scrollToSection('about-section')">About Us</a></li>
-                    <li><a href="#contact-section" onclick="scrollToSection('contact-section')">Contact Us</a></li>
+                    <li><a href="#" data-section="home">Home</a></li>
+                    <li><a href="#" data-section="theory">Theory</a></li>
+                    <li><a href="#" data-section="lab">Lab Materials</a></li>
+                    <li><a href="#" data-section="mincode">Minimized Code</a></li>
+                    <li><a href="#about-section" data-scroll="about-section">About Us</a></li>
+                    <li><a href="#contact-section" data-scroll="contact-section">Contact Us</a></li>
                 </ul>
-                <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <div class="mobile-menu-toggle" id="mobileMenuToggle">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -82,7 +83,7 @@
                         <!-- Authentication controls will be inserted here -->
                     </div>
                     <div class="theme-toggle">
-                        <button id="themeToggle" onclick="toggleTheme()">🌙</button>
+                        <button id="themeToggle">🌙</button>
                     </div>
                 </div>
             </div>
@@ -96,8 +97,8 @@
                     <h1 class="hero-title">🎓 Welcome to Semprepzie</h1>
                     <p class="hero-subtitle">Your comprehensive learning platform for academic excellence</p>
                     <div class="hero-buttons">
-                        <button class="btn-primary" onclick="showSection('theory')">Explore Theory</button>
-                        <button class="btn-secondary" onclick="showSection('lab')">Lab Materials</button>
+                        <button class="btn-primary" data-section="theory">Explore Theory</button>
+                        <button class="btn-secondary" data-section="lab">Lab Materials</button>
                     </div>
                 </div>
                 <div class="hero-animation">
@@ -206,7 +207,7 @@
                                     <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;">
                                         <a href="https://mail.google.com/mail/?view=cm&fs=1&to=semprepzie@gmail.com&subject=Message%20from%20Semprepzie%20Visitor&body=Hello%20Semprepzie%20Team%2C%0A%0AI%20would%20like%20to%20get%20in%20touch%20regarding%3A%0A%0A%5BYour%20message%20here%5D%0A%0ABest%20regards%2C%0A%5BYour%20name%5D" target="_blank" style="background: #dd4b39; color: white; text-decoration: none; padding: 8px 12px; border-radius: 5px; font-size: 11px;">📧 Gmail</a>
                                         <a href="mailto:semprepzie@gmail.com?subject=Message%20from%20Semprepzie%20Visitor&body=Hello%20Semprepzie%20Team%2C%0A%0AI%20would%20like%20to%20get%20in%20touch%20regarding%3A%0A%0A%5BYour%20message%20here%5D%0A%0ABest%20regards%2C%0A%5BYour%20name%5D" style="background: #0078d4; color: white; text-decoration: none; padding: 8px 12px; border-radius: 5px; font-size: 11px;">📮 Email App</a>
-                                        <button type="button" onclick="copyEmail()" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 11px; cursor: pointer;">📋 Copy Email</button>
+                                        <button type="button" id="copyEmailBtn1" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 11px; cursor: pointer;">📋 Copy Email</button>
                                     </div>
                                     <p style="font-size: 11px; color: #721c24; margin-top: 8px; font-weight: bold;">📧 semprepzie@gmail.com</p>
                                 </div>
@@ -290,7 +291,7 @@
                             <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;">
                                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=semprepzie@gmail.com&subject=Message%20from%20Semprepzie%20Visitor&body=Hello%20Semprepzie%20Team%2C%0A%0AI%20would%20like%20to%20get%20in%20touch%20regarding%3A%0A%0A%5BYour%20message%20here%5D%0A%0ABest%20regards%2C%0A%5BYour%20name%5D" target="_blank" style="background: #dd4b39; color: white; text-decoration: none; padding: 8px 12px; border-radius: 5px; font-size: 11px;">📧 Gmail</a>
                                 <a href="mailto:semprepzie@gmail.com?subject=Message%20from%20Semprepzie%20Visitor&body=Hello%20Semprepzie%20Team%2C%0A%0AI%20would%20like%20to%20get%20in%20touch%20regarding%3A%0A%0A%5BYour%20message%20here%5D%0A%0ABest%20regards%2C%0A%5BYour%20name%5D" style="background: #0078d4; color: white; text-decoration: none; padding: 8px 12px; border-radius: 5px; font-size: 11px;">📮 Email App</a>
-                                <button type="button" onclick="copyEmail()" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 11px; cursor: pointer;">📋 Copy Email</button>
+                                <button type="button" id="copyEmailBtn2" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 11px; cursor: pointer;">📋 Copy Email</button>
                             </div>
                             <p style="font-size: 11px; color: #721c24; margin-top: 8px; font-weight: bold;">📧 semprepzie@gmail.com</p>
                         </div>
@@ -332,7 +333,7 @@
     <!-- Course Modal -->
     <div id="courseModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
+            <span class="close" id="modalClose">&times;</span>
             <h2 id="modalTitle">Course Title</h2>
             <div id="modalBody" class="modal-body">
                 <!-- Course content will be loaded here -->

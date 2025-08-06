@@ -22,6 +22,11 @@ let firebaseAuthManager = null;
 
 // Initialize Firebase Auth when available
 window.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded');
+    
+    // Set up event listeners for auth elements
+    setupEventListeners();
+    
     // Wait for Firebase Auth to be available
     setTimeout(() => {
         if (window.firebaseAuth) {
@@ -2916,7 +2921,14 @@ window.onclick = function(event) {
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const href = this.getAttribute('href');
+        
+        // Skip empty or invalid hrefs
+        if (!href || href === '#' || href.length <= 1) {
+            return;
+        }
+        
+        const target = document.querySelector(href);
         if (target) {
             target.scrollIntoView({
                 behavior: 'smooth',
@@ -4225,6 +4237,79 @@ function showNotification(message, type) {
             }
         }, 300);
     }, 3000);
+}
+
+// Set up event listeners (CSP-compliant)
+function setupEventListeners() {
+    // Login form handlers
+    const loginBtn = document.getElementById('loginBtn');
+    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const backToLoginLink = document.getElementById('backToLoginLink');
+    
+    if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+    if (resetPasswordBtn) resetPasswordBtn.addEventListener('click', handlePasswordReset);
+    if (forgotPasswordLink) forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showForgotPassword();
+    });
+    if (backToLoginLink) backToLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showLoginForm();
+    });
+    
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+    
+    // Mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+    
+    // Navigation menu
+    document.querySelectorAll('[data-section]').forEach(element => {
+        element.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = e.target.getAttribute('data-section');
+            if (section) showSection(section);
+        });
+    });
+    
+    // Scroll to section links
+    document.querySelectorAll('[data-scroll]').forEach(element => {
+        element.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = e.target.getAttribute('data-scroll');
+            if (section) scrollToSection(section);
+        });
+    });
+    
+    // Copy email buttons
+    const copyEmailBtn1 = document.getElementById('copyEmailBtn1');
+    const copyEmailBtn2 = document.getElementById('copyEmailBtn2');
+    if (copyEmailBtn1) copyEmailBtn1.addEventListener('click', copyEmail);
+    if (copyEmailBtn2) copyEmailBtn2.addEventListener('click', copyEmail);
+    
+    // Modal close
+    const modalClose = document.getElementById('modalClose');
+    if (modalClose) modalClose.addEventListener('click', closeModal);
+    
+    // Enter key handlers for forms
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    const resetEmail = document.getElementById('resetEmail');
+    
+    if (loginPassword) {
+        loginPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    }
+    
+    if (resetEmail) {
+        resetEmail.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handlePasswordReset();
+        });
+    }
 }
 
 // Simplified form handler for better reliability
