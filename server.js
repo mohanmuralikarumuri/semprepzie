@@ -46,7 +46,8 @@ app.use(helmet({
                 "'unsafe-eval'",
                 "https://www.gstatic.com",
                 "https://www.googletagmanager.com",
-                "https://firebase.googleapis.com"
+                "https://firebase.googleapis.com",
+                "https://apis.google.com"
             ],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -55,7 +56,11 @@ app.use(helmet({
                 "'self'",
                 "https://firebase.googleapis.com",
                 "https://firebaseauth.googleapis.com",
+                "https://identitytoolkit.googleapis.com",
+                "https://securetoken.googleapis.com",
+                "https://www.googleapis.com",
                 "https://semprepzie-315b1-default-rtdb.firebaseio.com",
+                "https://semprepzie-315b1.firebaseapp.com",
                 "https://getform.io"
             ]
         }
