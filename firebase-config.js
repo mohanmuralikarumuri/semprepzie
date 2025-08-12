@@ -13,6 +13,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
+// Test Firebase connection
+console.log('Firebase initialized with config:', {
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+    currentOrigin: window.location.origin
+});
+
 // Note: Phone authentication requires Firebase Blaze (pay-as-you-go) plan
 // Currently disabled due to billing requirements
 // auth.settings.appVerificationDisabledForTesting = true;
@@ -349,10 +356,9 @@ class FirebaseAuthManager {
     async logoutFromOtherDevices(email) {
         try {
             const deviceId = this.generateDeviceId();
-            // Use correct server URL (adjust port as needed)
-            const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? 'http://localhost:3001' 
-                : '';
+            // Use correct server URL - check if running locally or on production
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const serverUrl = isLocal ? 'http://localhost:3001' : window.location.origin;
             
             const response = await fetch(`${serverUrl}/api/logout-other-devices`, {
                 method: 'POST',
@@ -377,9 +383,8 @@ class FirebaseAuthManager {
     // Enhanced device tracking with Firebase integration
     async registerDeviceWithServer(email, deviceId) {
         try {
-            const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? 'http://localhost:3001' 
-                : '';
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const serverUrl = isLocal ? 'http://localhost:3001' : window.location.origin;
                 
             const response = await fetch(`${serverUrl}/api/register-device`, {
                 method: 'POST',
@@ -400,9 +405,8 @@ class FirebaseAuthManager {
 
     async checkDeviceCount(email) {
         try {
-            const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? 'http://localhost:3001' 
-                : '';
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const serverUrl = isLocal ? 'http://localhost:3001' : window.location.origin;
                 
             const response = await fetch(`${serverUrl}/api/check-devices`, {
                 method: 'POST',
@@ -483,19 +487,33 @@ class FirebaseAuthManager {
             const token = await user.getIdToken();
             localStorage.setItem('authToken', token);
             
-            // Register this device with the server
-            await this.registerDeviceWithServer(email, deviceId);
+            // Register this device with the server (non-blocking)
+            try {
+                await this.registerDeviceWithServer(email, deviceId);
+            } catch (error) {
+                console.warn('Device registration failed, continuing...', error);
+            }
             
-            // Check device count on server
-            const deviceInfo = await this.checkDeviceCount(email);
-            console.log('Device count info:', deviceInfo);
+            // Check device count on server (non-blocking)
+            let deviceInfo;
+            try {
+                deviceInfo = await this.checkDeviceCount(email);
+                console.log('Device count info:', deviceInfo);
+            } catch (error) {
+                console.warn('Device check failed, continuing...', error);
+                deviceInfo = { hasMultipleDevices: false, deviceCount: 1 };
+            }
             
             // For new devices, ALWAYS require email verification (even if already verified)
             if (isNewDevice) {
                 console.log('New device detected - requiring email verification');
                 
-                // First, logout other devices
-                await this.logoutFromOtherDevices(email);
+                // First, logout other devices (non-blocking)
+                try {
+                    await this.logoutFromOtherDevices(email);
+                } catch (error) {
+                    console.warn('Logout other devices failed, continuing...', error);
+                }
                 
                 // ALWAYS send verification email for new devices (security measure)
                 console.log('Sending email verification for new device security...');
@@ -545,10 +563,29 @@ class FirebaseAuthManager {
             };
         } catch (error) {
             console.error('Sign in error:', error);
-            return {
-                success: false,
-                error: this.getErrorMessage(error.code)
-            };
+            console.error('Error details:', {
+                code: error.code,
+                message: error.message,
+                stack: error.stack
+            });
+            
+            // Provide more specific error messages
+            if (error.code === 'auth/network-request-failed') {
+                return {
+                    success: false,
+                    error: 'Network error. Please check your internet connection and try again.'
+                };
+            } else if (error.code === 'auth/too-many-requests') {
+                return {
+                    success: false,
+                    error: 'Too many failed attempts. Please wait a moment and try again.'
+                };
+            } else {
+                return {
+                    success: false,
+                    error: this.getErrorMessage(error.code)
+                };
+            }
         }
     }
 
