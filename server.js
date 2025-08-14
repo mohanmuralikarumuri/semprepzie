@@ -54,6 +54,12 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https:"],
+            frameSrc: [
+                "'self'",
+                "https://docs.google.com",
+                "https://drive.google.com",
+                "https://www.google.com"
+            ],
             connectSrc: [
                 "'self'",
                 "https://firebase.googleapis.com",
