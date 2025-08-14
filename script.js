@@ -416,11 +416,11 @@ function showEmailVerificationPrompt(email, type = 'email-verification') {
             }
         </p>
         <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="resendVerificationEmail('${email}')" 
+            <button class="resend-verification-btn" data-email="${email}"
                     style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px;">
                 📤 Resend Email
             </button>
-            <button onclick="checkEmailVerification()" 
+            <button class="check-verification-btn"
                     style="background: rgba(255,255,255,0.9); color: #059669; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">
                 ✓ I've Verified
             </button>
@@ -438,6 +438,23 @@ function showEmailVerificationPrompt(email, type = 'email-verification') {
         ? document.getElementById('phoneLoginForm') 
         : document.getElementById('loginForm');
     targetForm.appendChild(verificationPrompt);
+    
+    // Add event listeners for the prompt after it's added
+    setTimeout(() => {
+        const resendBtn = verificationPrompt.querySelector('.resend-verification-btn');
+        const checkBtn = verificationPrompt.querySelector('.check-verification-btn');
+        
+        if (resendBtn) {
+            resendBtn.addEventListener('click', () => {
+                const emailToResend = resendBtn.getAttribute('data-email');
+                resendVerificationEmail(emailToResend);
+            });
+        }
+        
+        if (checkBtn) {
+            checkBtn.addEventListener('click', checkEmailVerification);
+        }
+    }, 100);
     
     // Send verification email automatically if new device
     if (isNewDevice) {
@@ -1700,9 +1717,10 @@ const courseData = {
         icon: '⚛️',
         units: [
             {
-                title: 'Unit 1: Introduction to Quantum Theory and Technologies ',
-                content: ' The transition from classical to quantum physics',
-                pdf: 'pdfs/unitone.pdf'
+                title: 'Unit 1: Introduction to Quantum Theory and Technologies',
+                content: 'The transition from classical to quantum physics',
+                pdf: 'pdfs/unitone.pdf',
+                driveDoc: 'https://drive.google.com/file/d/1r0y9_VYFiOotTCe22HeysMpT4sMK_nLL/view?usp=sharing'
             }/*,
             {
                 title: 'Unit 2: Thermodynamics',
@@ -1761,11 +1779,12 @@ const courseData = {
         title: 'Computer Networks',
         icon: '💻',
         units: [
-            /*{
-                title: 'Unit 1: Programming Fundamentals',
-                content: 'Variables, data types, and control structures.',
-                pdf: 'pdfs/cn1.docx'
-            },
+            {
+                title: 'Unit 1: Network Fundamentals',
+                content: 'Introduction to computer networks, protocols, and network architecture.',
+                pdf: 'pdfs/cn1.docx',
+                driveDoc: 'https://docs.google.com/document/d/1CpFkwZot5gE5YplJXVWd_ZNLZ0UtomYH/edit?usp=sharing&ouid=103443519445341135432&rtpof=true&sd=true'
+            }/*,
             {
                 title: 'Unit 2: Data Structures',
                 content: 'Arrays, linked lists, stacks, and queues.',
@@ -1942,23 +1961,34 @@ function openCourse(courseId) {
         <div class="units-box-container">`;
     
     course.units.forEach((unit, index) => {
+        const hasDocument = unit.driveDoc ? true : false;
+        
         content += `
             <div class="unit-box" data-unit="${index}">
                 <div class="unit-header">
                     <div class="unit-number-badge">Unit ${index + 1}</div>
                     <h3 class="unit-title">${unit.title}</h3>
-                    <button class="unit-pdf-btn" onclick="viewPDF('${unit.pdf}')" title="View PDF">
-                        <span class="btn-icon">📄</span>
-                    </button>
+                    <div class="unit-header-buttons">
+                        ${hasDocument ? `<button class="unit-doc-btn" onclick="viewDocument('${unit.driveDoc}', '${unit.title}')" title="View Document">
+                            <span class="btn-icon">📄</span>
+                        </button>` : ''}
+                        <button class="unit-pdf-btn" onclick="viewPDF('${unit.pdf}')" title="View PDF">
+                            <span class="btn-icon">�</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="unit-content">
                     <p class="unit-description">${unit.content}</p>
                 </div>
                 <div class="unit-footer">
                     <div class="unit-actions-box">
-                        <button class="pdf-box-btn" onclick="viewPDF('${unit.pdf}')">
+                        ${hasDocument ? `<button class="doc-box-btn" onclick="viewDocument('${unit.driveDoc}', '${unit.title}')">
                             <span class="btn-icon">📄</span>
-                            <span class="btn-text">View PDF</span>
+                            <span class="btn-text">View Document</span>
+                        </button>` : ''}
+                        <button class="pdf-box-btn" onclick="viewPDF('${unit.pdf}')">
+                            <span class="btn-icon">�</span>
+                            <span class="btn-text">Local PDF</span>
                         </button>
                     </div>
                 </div>
@@ -4294,6 +4324,20 @@ function setupEventListeners() {
     const modalClose = document.getElementById('modalClose');
     if (modalClose) modalClose.addEventListener('click', closeModal);
     
+    // Document modal controls
+    const closeDocument = document.getElementById('closeDocument');
+    const openInNewTab = document.getElementById('openInNewTab');
+    if (closeDocument) closeDocument.addEventListener('click', closeDocumentViewer);
+    if (openInNewTab) openInNewTab.addEventListener('click', openDocumentInNewTab);
+    
+    // Close document modal when clicking outside
+    const documentModal = document.getElementById('documentModal');
+    if (documentModal) {
+        documentModal.addEventListener('click', (e) => {
+            if (e.target === documentModal) closeDocumentViewer();
+        });
+    }
+    
     // Enter key handlers for forms
     const loginEmail = document.getElementById('loginEmail');
     const loginPassword = document.getElementById('loginPassword');
@@ -4325,4 +4369,92 @@ function handleFormSubmit(event, formType) {
     // Let the form submit naturally to FormSubmit
     // The form will redirect to the _next URL after successful submission
     return true;
+}
+
+// Document Viewer Functions
+function viewDocument(driveUrl, title) {
+    const documentModal = document.getElementById('documentModal');
+    const documentTitle = document.getElementById('documentTitle');
+    const documentFrame = document.getElementById('documentFrame');
+    const documentLoader = document.getElementById('documentLoader');
+    
+    if (!documentModal || !documentFrame) return;
+    
+    // Convert Google Drive URL to embedded format
+    let embedUrl = driveUrl;
+    
+    // Handle Google Docs
+    if (driveUrl.includes('docs.google.com/document')) {
+        embedUrl = driveUrl.replace('/edit', '/preview');
+    }
+    // Handle Google Drive files
+    else if (driveUrl.includes('drive.google.com/file')) {
+        const fileId = driveUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        if (fileId && fileId[1]) {
+            embedUrl = `https://drive.google.com/file/d/${fileId[1]}/preview`;
+        }
+    }
+    
+    // Set title and show modal
+    documentTitle.textContent = title || 'Document';
+    documentModal.style.display = 'block';
+    
+    // Store original URL for new tab opening
+    documentModal.setAttribute('data-original-url', driveUrl);
+    
+    // Show loader
+    documentLoader.classList.remove('hidden');
+    
+    // Load document in iframe
+    documentFrame.src = embedUrl;
+    
+    // Hide loader when iframe loads
+    documentFrame.onload = () => {
+        setTimeout(() => {
+            documentLoader.classList.add('hidden');
+        }, 1000);
+    };
+    
+    // Handle load errors
+    documentFrame.onerror = () => {
+        documentLoader.innerHTML = `
+            <div style="text-align: center;">
+                <p>Unable to load document in embedded view.</p>
+                <button onclick="openDocumentInNewTab()" style="margin-top: 10px; padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Open in New Tab
+                </button>
+            </div>
+        `;
+    };
+}
+
+function closeDocumentViewer() {
+    const documentModal = document.getElementById('documentModal');
+    const documentFrame = document.getElementById('documentFrame');
+    const documentLoader = document.getElementById('documentLoader');
+    
+    if (documentModal) {
+        documentModal.style.display = 'none';
+    }
+    
+    if (documentFrame) {
+        documentFrame.src = '';
+    }
+    
+    if (documentLoader) {
+        documentLoader.classList.remove('hidden');
+        documentLoader.innerHTML = `
+            <div class="loader-spinner"></div>
+            <p>Loading document...</p>
+        `;
+    }
+}
+
+function openDocumentInNewTab() {
+    const documentModal = document.getElementById('documentModal');
+    const originalUrl = documentModal?.getAttribute('data-original-url');
+    
+    if (originalUrl) {
+        window.open(originalUrl, '_blank');
+    }
 }

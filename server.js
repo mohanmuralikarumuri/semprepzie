@@ -44,11 +44,13 @@ app.use(helmet({
                 "'self'",
                 "'unsafe-inline'",
                 "'unsafe-eval'",
+                "'unsafe-hashes'",
                 "https://www.gstatic.com",
                 "https://www.googletagmanager.com",
                 "https://firebase.googleapis.com",
                 "https://apis.google.com"
             ],
+            scriptSrcAttr: ["'unsafe-inline'", "'unsafe-hashes'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https:"],
