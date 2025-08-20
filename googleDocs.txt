@@ -1,0 +1,20 @@
+structure in this document
+subject 
+name or chapter name
+link
+
+
+
+------
+computer networks 
+--
+unit 1
+--
+https://docs.google.com/document/d/1CpFkwZot5gE5YplJXVWd_ZNLZ0UtomYH/edit?usp=sharing&ouid=103443519445341135432&rtpof=true&sd=true,
+
+------
+Quantum physics
+--
+unit 1
+--
+https://drive.google.com/file/d/1r0y9_VYFiOotTCe22HeysMpT4sMK_nLL/view?usp=sharing
