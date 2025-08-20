@@ -1685,11 +1685,12 @@ const courseData = {
         title: 'Object Oriented Analysis and Design',
         icon: '📐',
         units: [
-            /*{
-                title: 'Unit 1: Algebra',
-                content: 'Introduction to algebraic expressions, equations, and inequalities.',
-                pdf: 'mathematics_unit1.pdf'
-            },
+            {
+                title: 'Unit 1: OOP Fundamentals',
+                content: 'Introduction to object-oriented programming concepts and principles.',
+                documentUrl: 'https://docs.google.com/spreadsheets/d/1example-spreadsheet/edit?usp=sharing',
+                documentType: 'sheet'
+            }/*,
             {
                 title: 'Unit 2: Calculus',
                 content: 'Differential and integral calculus fundamentals.',
@@ -1719,8 +1720,8 @@ const courseData = {
             {
                 title: 'Unit 1: Introduction to Quantum Theory and Technologies',
                 content: 'The transition from classical to quantum physics',
-                pdf: 'pdfs/unitone.pdf',
-                driveDoc: 'https://drive.google.com/file/d/1r0y9_VYFiOotTCe22HeysMpT4sMK_nLL/view?usp=sharing'
+                documentUrl: 'https://drive.google.com/file/d/1r0y9_VYFiOotTCe22HeysMpT4sMK_nLL/view?usp=sharing',
+                documentType: 'pdf'
             }/*,
             {
                 title: 'Unit 2: Thermodynamics',
@@ -1782,8 +1783,8 @@ const courseData = {
             {
                 title: 'Unit 1: Network Fundamentals',
                 content: 'Introduction to computer networks, protocols, and network architecture.',
-                pdf: 'pdfs/cn1.docx',
-                driveDoc: 'https://docs.google.com/document/d/1CpFkwZot5gE5YplJXVWd_ZNLZ0UtomYH/edit?usp=sharing&ouid=103443519445341135432&rtpof=true&sd=true'
+                documentUrl: 'https://docs.google.com/document/d/1CpFkwZot5gE5YplJXVWd_ZNLZ0UtomYH/edit?usp=sharing&ouid=103443519445341135432&rtpof=true&sd=true',
+                documentType: 'doc'
             }/*,
             {
                 title: 'Unit 2: Data Structures',
@@ -1810,21 +1811,23 @@ const courseData = {
     course5: {
         title: 'English for Competitive Examination',
         icon: '📚',
-        units: [/*
+        units: [
             {
                 title: 'Unit 1: Grammar and Syntax',
                 content: 'Parts of speech, sentence structure, and punctuation.',
-                pdf: 'english_unit1.pdf'
+                documentUrl: 'https://docs.google.com/document/d/1example-grammar/edit?usp=sharing',
+                documentType: 'doc'
             },
             {
                 title: 'Unit 2: Literature Analysis',
                 content: 'Poetry, prose, and dramatic works analysis.',
-                pdf: 'english_unit2.pdf'
-            },
+                documentUrl: 'https://docs.google.com/presentation/d/1example-literature/edit?usp=sharing',
+                documentType: 'ppt'
+            }/*,
             {
                 title: 'Unit 3: Writing Skills',
                 content: 'Essay writing, reports, and technical writing.',
-                pdf: 'english_unit3.pdf'
+                documentUrl: 'english_unit3.pdf'
             },
             {
                 title: 'Unit 4: Communication Skills',
@@ -1961,7 +1964,7 @@ function openCourse(courseId) {
         <div class="units-box-container">`;
     
     course.units.forEach((unit, index) => {
-        const hasDocument = unit.driveDoc ? true : false;
+        const hasDocument = unit.documentUrl ? true : false;
         
         content += `
             <div class="unit-box" data-unit="${index}">
@@ -1969,12 +1972,9 @@ function openCourse(courseId) {
                     <div class="unit-number-badge">Unit ${index + 1}</div>
                     <h3 class="unit-title">${unit.title}</h3>
                     <div class="unit-header-buttons">
-                        ${hasDocument ? `<button class="unit-doc-btn" onclick="viewDocument('${unit.driveDoc}', '${unit.title}')" title="View Document">
+                        ${hasDocument ? `<a href="${unit.documentUrl}" class="unit-doc-btn doc-link" title="View Document">
                             <span class="btn-icon">📄</span>
-                        </button>` : ''}
-                        <button class="unit-pdf-btn" onclick="viewPDF('${unit.pdf}')" title="View PDF">
-                            <span class="btn-icon">�</span>
-                        </button>
+                        </a>` : ''}
                     </div>
                 </div>
                 <div class="unit-content">
@@ -1982,14 +1982,10 @@ function openCourse(courseId) {
                 </div>
                 <div class="unit-footer">
                     <div class="unit-actions-box">
-                        ${hasDocument ? `<button class="doc-box-btn" onclick="viewDocument('${unit.driveDoc}', '${unit.title}')">
+                        ${hasDocument ? `<a href="${unit.documentUrl}" class="doc-box-btn doc-link" title="${unit.title}">
                             <span class="btn-icon">📄</span>
                             <span class="btn-text">View Document</span>
-                        </button>` : ''}
-                        <button class="pdf-box-btn" onclick="viewPDF('${unit.pdf}')">
-                            <span class="btn-icon">�</span>
-                            <span class="btn-text">Local PDF</span>
-                        </button>
+                        </a>` : ''}
                     </div>
                 </div>
             </div>
@@ -2994,6 +2990,9 @@ function addInteractiveAnimations() {
 
 // Initialize animations when DOM is loaded
 document.addEventListener('DOMContentLoaded', addInteractiveAnimations);
+
+// Initialize document links when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeDocumentLinks);
 
 // Contact form submission
 document.addEventListener('DOMContentLoaded', function() {
@@ -4324,19 +4323,29 @@ function setupEventListeners() {
     const modalClose = document.getElementById('modalClose');
     if (modalClose) modalClose.addEventListener('click', closeModal);
     
-    // Document modal controls
-    const closeDocument = document.getElementById('closeDocument');
-    const openInNewTab = document.getElementById('openInNewTab');
-    if (closeDocument) closeDocument.addEventListener('click', closeDocumentViewer);
-    if (openInNewTab) openInNewTab.addEventListener('click', openDocumentInNewTab);
+    // Document viewer controls
+    const closeDocViewer = document.getElementById('closeDocViewer');
+    if (closeDocViewer) closeDocViewer.addEventListener('click', closeDocumentViewer);
     
-    // Close document modal when clicking outside
-    const documentModal = document.getElementById('documentModal');
-    if (documentModal) {
-        documentModal.addEventListener('click', (e) => {
-            if (e.target === documentModal) closeDocumentViewer();
+    // Close document viewer when clicking outside the container
+    const documentViewerModal = document.getElementById('documentViewerModal');
+    if (documentViewerModal) {
+        documentViewerModal.addEventListener('click', (e) => {
+            if (e.target === documentViewerModal) {
+                closeDocumentViewer();
+            }
         });
     }
+    
+    // Escape key to close document viewer
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('documentViewerModal');
+            if (modal && modal.style.display === 'block') {
+                closeDocumentViewer();
+            }
+        }
+    });
     
     // Enter key handlers for forms
     const loginEmail = document.getElementById('loginEmail');
@@ -4371,90 +4380,210 @@ function handleFormSubmit(event, formType) {
     return true;
 }
 
-// Document Viewer Functions
-function viewDocument(driveUrl, title) {
-    const documentModal = document.getElementById('documentModal');
-    const documentTitle = document.getElementById('documentTitle');
-    const documentFrame = document.getElementById('documentFrame');
-    const documentLoader = document.getElementById('documentLoader');
-    
-    if (!documentModal || !documentFrame) return;
-    
-    // Convert Google Drive URL to embedded format
-    let embedUrl = driveUrl;
-    
-    // Handle Google Docs
-    if (driveUrl.includes('docs.google.com/document')) {
-        embedUrl = driveUrl.replace('/edit', '/preview');
-    }
-    // Handle Google Drive files
-    else if (driveUrl.includes('drive.google.com/file')) {
-        const fileId = driveUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
-        if (fileId && fileId[1]) {
-            embedUrl = `https://drive.google.com/file/d/${fileId[1]}/preview`;
-        }
+// Google Drive Document Link Handler
+// Function to extract file ID from Google Drive URLs and convert to direct download link
+function getDriveDirectLink(shareUrl) {
+    if (!shareUrl || typeof shareUrl !== 'string') {
+        return null;
     }
     
-    // Set title and show modal
-    documentTitle.textContent = title || 'Document';
-    documentModal.style.display = 'block';
+    let fileId = null;
     
-    // Store original URL for new tab opening
-    documentModal.setAttribute('data-original-url', driveUrl);
+    // Handle Google Drive file URLs
+    // Format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+    const driveFileMatch = shareUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9-_]+)/);
+    if (driveFileMatch) {
+        fileId = driveFileMatch[1];
+    }
     
-    // Show loader
-    documentLoader.classList.remove('hidden');
+    // Handle Google Docs URLs
+    // Format: https://docs.google.com/document/d/FILE_ID/edit?usp=sharing
+    const docsMatch = shareUrl.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9-_]+)/);
+    if (docsMatch) {
+        fileId = docsMatch[1];
+    }
     
-    // Load document in iframe
-    documentFrame.src = embedUrl;
+    // Handle Google Sheets URLs
+    // Format: https://docs.google.com/spreadsheets/d/FILE_ID/edit?usp=sharing
+    const sheetsMatch = shareUrl.match(/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if (sheetsMatch) {
+        fileId = sheetsMatch[1];
+    }
     
-    // Hide loader when iframe loads
-    documentFrame.onload = () => {
-        setTimeout(() => {
-            documentLoader.classList.add('hidden');
-        }, 1000);
-    };
+    // Handle Google Slides URLs
+    // Format: https://docs.google.com/presentation/d/FILE_ID/edit?usp=sharing
+    const slidesMatch = shareUrl.match(/docs\.google\.com\/presentation\/d\/([a-zA-Z0-9-_]+)/);
+    if (slidesMatch) {
+        fileId = slidesMatch[1];
+    }
     
-    // Handle load errors
-    documentFrame.onerror = () => {
-        documentLoader.innerHTML = `
-            <div style="text-align: center;">
-                <p>Unable to load document in embedded view.</p>
-                <button onclick="openDocumentInNewTab()" style="margin-top: 10px; padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    Open in New Tab
-                </button>
-            </div>
-        `;
-    };
+    // Return direct download link if file ID found
+    if (fileId) {
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+    
+    return null;
 }
 
-function closeDocumentViewer() {
-    const documentModal = document.getElementById('documentModal');
-    const documentFrame = document.getElementById('documentFrame');
-    const documentLoader = document.getElementById('documentLoader');
+// Function to handle document link clicks
+function openDocLink(event, url) {
+    // Prevent default link opening
+    event.preventDefault();
     
-    if (documentModal) {
-        documentModal.style.display = 'none';
+    if (!url) {
+        console.error('No URL provided to openDocLink');
+        return;
     }
     
-    if (documentFrame) {
-        documentFrame.src = '';
-    }
+    // Extract title from link context if available
+    const linkElement = event.target.closest('a') || event.target;
+    const title = linkElement.getAttribute('title') || 
+                  linkElement.textContent || 
+                  'Document';
     
-    if (documentLoader) {
-        documentLoader.classList.remove('hidden');
-        documentLoader.innerHTML = `
-            <div class="loader-spinner"></div>
-            <p>Loading document...</p>
-        `;
-    }
+    // Show the document viewer modal
+    showDocumentViewer(url, title);
 }
 
-function openDocumentInNewTab() {
-    const documentModal = document.getElementById('documentModal');
-    const originalUrl = documentModal?.getAttribute('data-original-url');
+// Function to show document viewer modal
+function showDocumentViewer(url, title) {
+    // Convert Google Drive URL to direct download link
+    const directUrl = getDriveDirectLink(url);
     
-    if (originalUrl) {
+    if (!directUrl) {
+        // If not a Google Drive link, try to view it anyway
+        console.warn('Could not convert to direct link, using original URL');
+        loadDocumentInViewer(url, url, title);
+        return;
+    }
+    
+    // Load document in viewer
+    loadDocumentInViewer(directUrl, url, title);
+}
+
+// Function to load document in the viewer
+function loadDocumentInViewer(viewerUrl, originalUrl, title) {
+    const modal = document.getElementById('documentViewerModal');
+    const titleElement = document.getElementById('documentViewerTitle');
+    const frame = document.getElementById('documentFrame');
+    const loader = document.getElementById('documentLoader');
+    const errorDiv = document.getElementById('documentError');
+    const downloadBtn = document.getElementById('downloadDocBtn');
+    const originalBtn = document.getElementById('openOriginalBtn');
+    const errorDownloadBtn = document.getElementById('errorDownloadBtn');
+    const errorOriginalBtn = document.getElementById('errorOriginalBtn');
+    
+    if (!modal || !frame) {
+        console.error('Document viewer elements not found');
+        // Fallback to opening in new tab
         window.open(originalUrl, '_blank');
+        return;
     }
+    
+    // Set title and links
+    titleElement.textContent = title;
+    downloadBtn.href = viewerUrl;
+    originalBtn.href = originalUrl;
+    errorDownloadBtn.href = viewerUrl;
+    errorOriginalBtn.href = originalUrl;
+    
+    // Show modal and loader
+    modal.style.display = 'block';
+    loader.style.display = 'flex';
+    frame.style.display = 'none';
+    errorDiv.style.display = 'none';
+    
+    // Determine document type and set appropriate viewer URL
+    const urlLower = viewerUrl.toLowerCase();
+    const originalLower = originalUrl.toLowerCase();
+    
+    let finalViewerUrl;
+    
+    // Check for PDF files
+    const isPdf = urlLower.includes('.pdf') || 
+                  originalLower.includes('pdf') ||
+                  originalLower.includes('/document/') && originalLower.includes('pdf');
+    
+    if (isPdf) {
+        // Use PDF.js viewer for PDFs
+        finalViewerUrl = `./pdfjs/web/viewer.html?file=${encodeURIComponent(viewerUrl)}`;
+    } else {
+        // Use Office Viewer for other documents
+        finalViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(viewerUrl)}`;
+    }
+    
+    // Set up frame load handlers
+    const loadTimeout = setTimeout(() => {
+        showDocumentError('Document viewer timed out. The document may be too large or not accessible.');
+    }, 15000);
+    
+    frame.onload = () => {
+        clearTimeout(loadTimeout);
+        hideDocumentLoader();
+    };
+    
+    frame.onerror = () => {
+        clearTimeout(loadTimeout);
+        showDocumentError('Failed to load document viewer. Please try downloading the document instead.');
+    };
+    
+    // Load the document
+    frame.src = finalViewerUrl;
+}
+
+// Function to hide document loader
+function hideDocumentLoader() {
+    const loader = document.getElementById('documentLoader');
+    const frame = document.getElementById('documentFrame');
+    
+    if (loader) loader.style.display = 'none';
+    if (frame) frame.style.display = 'block';
+}
+
+// Function to show document error
+function showDocumentError(message) {
+    const loader = document.getElementById('documentLoader');
+    const errorDiv = document.getElementById('documentError');
+    const errorMessage = document.getElementById('documentErrorMessage');
+    
+    if (loader) loader.style.display = 'none';
+    if (errorDiv) errorDiv.style.display = 'flex';
+    if (errorMessage) errorMessage.textContent = message;
+}
+
+// Function to close document viewer
+function closeDocumentViewer() {
+    const modal = document.getElementById('documentViewerModal');
+    const frame = document.getElementById('documentFrame');
+    
+    if (modal) modal.style.display = 'none';
+    if (frame) {
+        frame.src = '';
+        frame.style.display = 'none';
+    }
+    
+    // Reset loader and error states
+    const loader = document.getElementById('documentLoader');
+    const errorDiv = document.getElementById('documentError');
+    
+    if (loader) loader.style.display = 'flex';
+    if (errorDiv) errorDiv.style.display = 'none';
+}
+
+// Function to initialize document link handlers
+function initializeDocumentLinks() {
+    // Add event listeners to all links with class "doc-link"
+    document.querySelectorAll("a.doc-link").forEach(link => {
+        link.addEventListener("click", e => openDocLink(e, link.href));
+    });
+    
+    // Also handle buttons with data-doc-url attribute
+    document.querySelectorAll("button[data-doc-url]").forEach(button => {
+        button.addEventListener("click", e => {
+            const url = button.getAttribute('data-doc-url');
+            openDocLink(e, url);
+        });
+    });
+    
+    console.log('Document link handlers initialized');
 }

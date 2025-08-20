@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1e1e1e;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .viewer-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .toolbar {
+            background: #2d2d2d;
+            border-bottom: 1px solid #404040;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .toolbar h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            background: #4f46e5;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .viewer-frame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+            background: white;
+        }
+
+        .loading {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #404040;
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            color: #ef4444;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error h2 {
+            margin-bottom: 10px;
+        }
+
+        .fallback-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .toolbar-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="viewer-container">
+        <div class="toolbar">
+            <h1 id="documentTitle">Document Viewer</h1>
+            <div class="toolbar-actions">
+                <a id="downloadBtn" href="#" class="btn" target="_blank">
+                    📥 Download
+                </a>
+                <a id="openOriginalBtn" href="#" class="btn btn-secondary" target="_blank">
+                    🔗 Open Original
+                </a>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading document...</p>
+        </div>
+
+        <iframe id="viewerFrame" class="viewer-frame" style="display: none;"></iframe>
+
+        <div class="error" id="errorContainer" style="display: none;">
+            <h2>Unable to Display Document</h2>
+            <p id="errorMessage">The document could not be loaded in the embedded viewer.</p>
+            <div class="fallback-options">
+                <a id="fallbackDownload" href="#" class="btn" target="_blank">
+                    📥 Download Document
+                </a>
+                <a id="fallbackOriginal" href="#" class="btn btn-secondary" target="_blank">
+                    🔗 View in Google Drive
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DocumentViewer {
+            constructor() {
+                this.initElements();
+                this.loadDocument();
+            }
+
+            initElements() {
+                this.loading = document.getElementById('loading');
+                this.viewerFrame = document.getElementById('viewerFrame');
+                this.errorContainer = document.getElementById('errorContainer');
+                this.documentTitle = document.getElementById('documentTitle');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.openOriginalBtn = document.getElementById('openOriginalBtn');
+                this.fallbackDownload = document.getElementById('fallbackDownload');
+                this.fallbackOriginal = document.getElementById('fallbackOriginal');
+                this.errorMessage = document.getElementById('errorMessage');
+            }
+
+            async loadDocument() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const fileUrl = urlParams.get('file');
+                const originalUrl = urlParams.get('original') || fileUrl;
+                const title = urlParams.get('title') || 'Document';
+                
+                if (!fileUrl) {
+                    this.showError('No document URL provided');
+                    return;
+                }
+
+                // Set title and links
+                this.documentTitle.textContent = title;
+                this.downloadBtn.href = fileUrl;
+                this.openOriginalBtn.href = originalUrl;
+                this.fallbackDownload.href = fileUrl;
+                this.fallbackOriginal.href = originalUrl;
+
+                // Determine document type and viewer
+                const urlLower = fileUrl.toLowerCase();
+                
+                if (this.isPDF(fileUrl)) {
+                    await this.loadPDFViewer(fileUrl);
+                } else {
+                    await this.loadOfficeViewer(fileUrl);
+                }
+            }
+
+            isPDF(url) {
+                return url.toLowerCase().includes('.pdf') || 
+                       url.toLowerCase().includes('pdf');
+            }
+
+            async loadPDFViewer(fileUrl) {
+                // Try to load in PDF.js first
+                try {
+                    const pdfViewerUrl = `./pdfjs/web/viewer.html?file=${encodeURIComponent(fileUrl)}`;
+                    this.viewerFrame.src = pdfViewerUrl;
+                    this.viewerFrame.onload = () => this.hideLoading();
+                    this.viewerFrame.onerror = () => this.showError('PDF viewer failed to load');
+                } catch (error) {
+                    this.showError('Error loading PDF viewer');
+                }
+            }
+
+            async loadOfficeViewer(fileUrl) {
+                // Use Microsoft Office Viewer
+                try {
+                    const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+                    this.viewerFrame.src = officeViewerUrl;
+                    
+                    // Set a timeout for loading
+                    const loadTimeout = setTimeout(() => {
+                        this.showError('Document viewer timed out. The document may be too large or not accessible.');
+                    }, 15000);
+                    
+                    this.viewerFrame.onload = () => {
+                        clearTimeout(loadTimeout);
+                        this.hideLoading();
+                    };
+                    
+                    this.viewerFrame.onerror = () => {
+                        clearTimeout(loadTimeout);
+                        this.showError('Office viewer failed to load document');
+                    };
+                } catch (error) {
+                    this.showError('Error loading Office viewer');
+                }
+            }
+
+            hideLoading() {
+                this.loading.style.display = 'none';
+                this.viewerFrame.style.display = 'block';
+            }
+
+            showError(message) {
+                this.loading.style.display = 'none';
+                this.errorContainer.style.display = 'flex';
+                this.errorMessage.textContent = message;
+            }
+        }
+
+        // Initialize viewer when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new DocumentViewer();
+        });
+    </script>
+</body>
+</html>

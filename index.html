@@ -342,24 +342,44 @@
     </div>
 
     <!-- Document Viewer Modal -->
-    <div id="documentModal" class="modal document-modal">
-        <div class="modal-content document-viewer">
-            <div class="document-header">
-                <h3 id="documentTitle">Document Title</h3>
+    <div id="documentViewerModal" class="document-viewer-modal">
+        <div class="document-viewer-container">
+            <div class="document-toolbar">
+                <div class="document-title-section">
+                    <h3 id="documentViewerTitle">Document Viewer</h3>
+                </div>
                 <div class="document-controls">
-                    <button id="openInNewTab" class="control-btn" title="Open in new tab">
-                        <span>🔗</span>
-                    </button>
-                    <button id="closeDocument" class="control-btn close-btn" title="Close">
-                        <span>✕</span>
+                    <a id="downloadDocBtn" href="#" class="doc-control-btn" target="_blank" title="Download Document">
+                        📥 Download
+                    </a>
+                    <a id="openOriginalBtn" href="#" class="doc-control-btn" target="_blank" title="Open in Google Drive">
+                        🔗 Open Original
+                    </a>
+                    <button id="closeDocViewer" class="doc-control-btn close-btn" title="Close Viewer">
+                        ✕ Close
                     </button>
                 </div>
             </div>
+            
             <div class="document-content">
-                <iframe id="documentFrame" src="" frameborder="0"></iframe>
                 <div id="documentLoader" class="document-loader">
-                    <div class="loader-spinner"></div>
+                    <div class="doc-spinner"></div>
                     <p>Loading document...</p>
+                </div>
+                
+                <iframe id="documentFrame" class="document-frame"></iframe>
+                
+                <div id="documentError" class="document-error" style="display: none;">
+                    <h3>Unable to Display Document</h3>
+                    <p id="documentErrorMessage">The document could not be loaded in the embedded viewer.</p>
+                    <div class="error-actions">
+                        <a id="errorDownloadBtn" href="#" class="error-btn" target="_blank">
+                            📥 Download Document
+                        </a>
+                        <a id="errorOriginalBtn" href="#" class="error-btn" target="_blank">
+                            🔗 View in Google Drive
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
