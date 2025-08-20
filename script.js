@@ -1994,6 +1994,10 @@ function openCourse(courseId) {
     content += '</div>';
 
     modalBody.innerHTML = content;
+    
+    // Initialize document links after content is loaded
+    initializeDocumentLinks();
+    
     modal.style.display = 'block';
 
     // Add 3D effects to unit boxes after they're created
@@ -2277,6 +2281,10 @@ function openLab(labId) {
     content += '</div>';
 
     modalBody.innerHTML = content;
+    
+    // Initialize document links after content is loaded (in case any links are added later)
+    initializeDocumentLinks();
+    
     modal.style.display = 'block';
 
     // Add 3D effects to exercise boxes after they're created
@@ -4388,12 +4396,14 @@ function getDriveDirectLink(shareUrl) {
     }
     
     let fileId = null;
+    let docType = 'file'; // default type
     
     // Handle Google Drive file URLs
     // Format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
     const driveFileMatch = shareUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9-_]+)/);
     if (driveFileMatch) {
         fileId = driveFileMatch[1];
+        docType = 'file';
     }
     
     // Handle Google Docs URLs
@@ -4401,6 +4411,7 @@ function getDriveDirectLink(shareUrl) {
     const docsMatch = shareUrl.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9-_]+)/);
     if (docsMatch) {
         fileId = docsMatch[1];
+        docType = 'doc';
     }
     
     // Handle Google Sheets URLs
@@ -4408,6 +4419,7 @@ function getDriveDirectLink(shareUrl) {
     const sheetsMatch = shareUrl.match(/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     if (sheetsMatch) {
         fileId = sheetsMatch[1];
+        docType = 'sheet';
     }
     
     // Handle Google Slides URLs
@@ -4415,11 +4427,26 @@ function getDriveDirectLink(shareUrl) {
     const slidesMatch = shareUrl.match(/docs\.google\.com\/presentation\/d\/([a-zA-Z0-9-_]+)/);
     if (slidesMatch) {
         fileId = slidesMatch[1];
+        docType = 'slide';
     }
     
-    // Return direct download link if file ID found
+    // Return appropriate link based on document type
     if (fileId) {
-        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+        switch (docType) {
+            case 'doc':
+                // For Google Docs, use export as Word document
+                return `https://docs.google.com/document/d/${fileId}/export?format=docx`;
+            case 'sheet':
+                // For Google Sheets, use export as Excel
+                return `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
+            case 'slide':
+                // For Google Slides, use export as PowerPoint
+                return `https://docs.google.com/presentation/d/${fileId}/export?format=pptx`;
+            case 'file':
+            default:
+                // For regular files, use the download link
+                return `https://drive.google.com/uc?export=download&id=${fileId}`;
+        }
     }
     
     return null;
@@ -4429,6 +4456,8 @@ function getDriveDirectLink(shareUrl) {
 function openDocLink(event, url) {
     // Prevent default link opening
     event.preventDefault();
+    
+    console.log('openDocLink called with URL:', url);
     
     if (!url) {
         console.error('No URL provided to openDocLink');
@@ -4441,14 +4470,20 @@ function openDocLink(event, url) {
                   linkElement.textContent || 
                   'Document';
     
+    console.log('Document title:', title);
+    
     // Show the document viewer modal
     showDocumentViewer(url, title);
 }
 
 // Function to show document viewer modal
 function showDocumentViewer(url, title) {
+    console.log('showDocumentViewer called with URL:', url);
+    
     // Convert Google Drive URL to direct download link
     const directUrl = getDriveDirectLink(url);
+    
+    console.log('Direct URL:', directUrl);
     
     if (!directUrl) {
         // If not a Google Drive link, try to view it anyway
@@ -4494,23 +4529,41 @@ function loadDocumentInViewer(viewerUrl, originalUrl, title) {
     errorDiv.style.display = 'none';
     
     // Determine document type and set appropriate viewer URL
-    const urlLower = viewerUrl.toLowerCase();
-    const originalLower = originalUrl.toLowerCase();
+    const urlLower = originalUrl.toLowerCase();
     
     let finalViewerUrl;
     
     // Check for PDF files
     const isPdf = urlLower.includes('.pdf') || 
-                  originalLower.includes('pdf') ||
-                  originalLower.includes('/document/') && originalLower.includes('pdf');
+                  urlLower.includes('pdf') ||
+                  urlLower.includes('/file/');
     
-    if (isPdf) {
-        // Use PDF.js viewer for PDFs
+    // Check for different Google document types
+    const isGoogleDoc = urlLower.includes('/document/');
+    const isGoogleSheet = urlLower.includes('/spreadsheets/');
+    const isGoogleSlide = urlLower.includes('/presentation/');
+    
+    if (isPdf && !isGoogleDoc && !isGoogleSheet && !isGoogleSlide) {
+        // Use PDF.js viewer for PDF files
         finalViewerUrl = `./pdfjs/web/viewer.html?file=${encodeURIComponent(viewerUrl)}`;
+    } else if (isGoogleDoc || isGoogleSheet || isGoogleSlide) {
+        // For Google Docs/Sheets/Slides, use Google's own viewer
+        const fileId = extractFileId(originalUrl);
+        if (fileId) {
+            if (isGoogleDoc) {
+                finalViewerUrl = `https://docs.google.com/document/d/${fileId}/preview`;
+            } else if (isGoogleSheet) {
+                finalViewerUrl = `https://docs.google.com/spreadsheets/d/${fileId}/preview`;
+            } else if (isGoogleSlide) {
+                finalViewerUrl = `https://docs.google.com/presentation/d/${fileId}/preview`;
+            }
+        }
     } else {
         // Use Office Viewer for other documents
         finalViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(viewerUrl)}`;
     }
+    
+    console.log('Final viewer URL:', finalViewerUrl);
     
     // Set up frame load handlers
     const loadTimeout = setTimeout(() => {
@@ -4529,6 +4582,23 @@ function loadDocumentInViewer(viewerUrl, originalUrl, title) {
     
     // Load the document
     frame.src = finalViewerUrl;
+}
+
+// Helper function to extract file ID from Google URLs
+function extractFileId(url) {
+    const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
+    if (fileMatch) return fileMatch[1];
+    
+    const docMatch = url.match(/\/document\/d\/([a-zA-Z0-9-_]+)/);
+    if (docMatch) return docMatch[1];
+    
+    const sheetMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if (sheetMatch) return sheetMatch[1];
+    
+    const slideMatch = url.match(/\/presentation\/d\/([a-zA-Z0-9-_]+)/);
+    if (slideMatch) return slideMatch[1];
+    
+    return null;
 }
 
 // Function to hide document loader
@@ -4573,7 +4643,11 @@ function closeDocumentViewer() {
 // Function to initialize document link handlers
 function initializeDocumentLinks() {
     // Add event listeners to all links with class "doc-link"
-    document.querySelectorAll("a.doc-link").forEach(link => {
+    const docLinks = document.querySelectorAll("a.doc-link");
+    console.log('Found', docLinks.length, 'doc-link elements');
+    
+    docLinks.forEach((link, index) => {
+        console.log(`Setting up doc-link ${index}:`, link.href);
         link.addEventListener("click", e => openDocLink(e, link.href));
     });
     
