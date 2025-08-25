@@ -4,22 +4,56 @@ name or chapter name
 link
 
 
-
+------
+OBJECT ORIENTED ANALYSIS & DESIGN
+---
+unit 1
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/ooadunit-1.pdf
+---
+unit 2 part 1
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/ooadunit2-1.pdf
+unit 2 part 1 - 2
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/ooadunit2-1-2.pdf
+---
+unit 2 part 2
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/ooadunit2-2.pdf
+------
+ARTIFICIAL INTELLIGENCE
+------
+AUTOMATA THEORY & COMPILER DESIGN
 ------
 computer networks 
---
-unit 1
---
-https://docs.google.com/document/d/1CpFkwZot5gE5YplJXVWd_ZNLZ0UtomYH/edit?usp=sharing&ouid=103443519445341135432&rtpof=true&sd=true,
-
-
---
-unit 2
 ---
+unit 1
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit1.pdf
 
+---
+unit 2 part 1
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2.pdf
+---
+unit 2 part 2
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-2.pdf
+------
+English for competitive exam
+---
+part 1
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/english.pdf
 ------
 Quantum physics
---
+---
 unit 1
---
-https://drive.google.com/file/d/1r0y9_VYFiOotTCe22HeysMpT4sMK_nLL/view?usp=sharing
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/quantumunit1.pdf
+---
+unit 2
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/quantumunit2.pdf
+-------

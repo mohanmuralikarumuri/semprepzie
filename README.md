@@ -1,234 +1,318 @@
-# Semprepzie - Educational Portal
+# Semprepzie v2.0 - Modern Full-Stack Educational Platform
 
-## Overview
-Welcome to Semprepzie, a comprehensive educational portal designed for students with modern Firebase authentication and auto-deployment features.
+A clean, modern, structured full-stack application built with React + Node.js + Firebase for educational document management and authentication.
 
 ## 🚀 Features
 
-### Authentication System
-- **Firebase Authentication**: Modern email/password login system
-- **Legacy Support**: Backward compatibility with student ID login
-- **Password Reset**: Email-based password recovery
-- **Auto-login**: Persistent sessions with automatic token refresh
-- **Secure**: Token-based API authentication
+### 🔐 Authentication
+- **Firebase Authentication** with email/password
+- **Password reset** functionality
+- **Role-based access control** (student, admin, instructor)
+- **Restricted login** (only @aitsrajampet.ac.in emails)
+- **Device management** and session control
+- **Email verification** for new devices
 
-### Educational Content
-- **Loading Animation**: Beautiful book loading animation
-- **Secure Login**: Multiple authentication methods
-- **Dark/Light Mode**: Toggle between themes
-- **3D Effects**: Modern animations and transitions
-- **Responsive Design**: Works on all devices
+### 📄 Document Management
+- **PDF.js** integration for PDF viewing
+- **Microsoft Office Online Viewer** for Word/Excel/PowerPoint files
+- **Google Drive** document integration
+- **File compression/decompression** for faster loading
+- **Document categories** and tagging
+- **Search and filtering** capabilities
 
-### Backend Features
-- **Express.js API**: RESTful endpoints with rate limiting
-- **Email Service**: Contact form with email notifications
-- **Auto Keep-Alive**: Built-in cron job to prevent service sleep on Render
-- **Health Monitoring**: Comprehensive health check endpoints
-- **Security**: Helmet.js security headers and input validation
+### 📧 Contact System
+- **Nodemailer** integration with Gmail SMTP
+- **Input validation** and sanitization
+- **Rate limiting** for spam protection
+- **HTML email templates**
 
-## 🌐 Live Demo
+### 🛡️ Security & Performance
+- **Helmet** for security headers
+- **CORS** configuration
+- **Rate limiting** on all endpoints
+- **Request validation** with express-validator
+- **Compression** for static files
+- **Error handling** and logging
 
-[View Live Portal](https://mohanmuralikarumuri.github.io/semprepzie/)
+## 🏗️ Architecture
 
-## 📁 Structure
+### Project Structure
 ```
-semprepzie/
-├── index.html              # Main HTML file
-├── styles.css              # Main stylesheet
-├── animations.css          # Additional animations
-├── auth-styles.css         # Authentication styling
-├── script.js               # Main JavaScript functionality
-├── firebase-auth.js        # Firebase authentication module
-├── demofirebase.js         # Firebase configuration
-├── server.js               # Express.js backend server
-├── package.json            # Node.js dependencies
-├── keep-alive.sh           # Cron script for keep-alive
-├── DEPLOYMENT.md           # Deployment instructions
-├── CONTACT_SETUP.md        # Contact form setup
-├── contact.php             # PHP backend alternative
-├── pdfs/                   # PDF resources directory
-└── README.md               # This file
+semprepzie-v2/
+├── frontend/                 # React + Vite + TypeScript
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   ├── pages/          # Page components
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── services/       # API services
+│   │   ├── contexts/       # React contexts
+│   │   ├── utils/          # Utility functions
+│   │   └── styles/         # Tailwind CSS styles
+│   ├── public/             # Static assets
+│   └── package.json
+├── backend/                 # Express.js + TypeScript
+│   ├── src/
+│   │   ├── controllers/    # Route controllers
+│   │   ├── middlewares/    # Express middlewares
+│   │   ├── routes/         # API routes
+│   │   ├── services/       # Business logic services
+│   │   ├── utils/          # Utility functions
+│   │   └── server.ts       # Main server file
+│   └── package.json
+├── shared/                  # Shared types and constants
+│   ├── src/
+│   │   ├── types/          # TypeScript interfaces
+│   │   └── constants/      # Shared constants
+│   └── package.json
+└── package.json            # Root package.json (workspaces)
 ```
 
-## 🔐 Authentication Methods
+### Technology Stack
 
-### 1. Firebase Authentication
-- **Email/Password**: Create account or login with email
-- **Password Reset**: Secure email-based recovery
-- **Token Management**: Automatic refresh and validation
+#### Frontend
+- **React 18** with TypeScript
+- **Vite** for fast development and building
+- **Tailwind CSS** for styling
+- **React Router** for routing
+- **React Hook Form** for form handling
+- **React Query** for state management
+- **Firebase SDK** for authentication
+- **PDF.js** for PDF viewing
+- **Axios** for HTTP requests
 
-### 2. Legacy Student ID Login
-- Compatible with existing student IDs
-- Seamless transition for existing users
-- Session-based storage
+#### Backend
+- **Express.js** with TypeScript
+- **Firebase Admin SDK** for secure authentication
+- **Nodemailer** for email sending
+- **Helmet** for security
+- **Express Rate Limit** for rate limiting
+- **Winston** for logging
+- **Joi** for validation
+- **Node-cron** for scheduled tasks
 
-## 🚀 Usage
+## 🛠️ Installation & Setup
 
-### For Users
-1. Visit the website
-2. Choose authentication method:
-   - **New Users**: Click "Sign Up" and create an account
-   - **Existing Users**: Login with email/password
-   - **Legacy Users**: Use the student ID login section
-3. Access educational content after authentication
+### Prerequisites
+- Node.js 18+ and npm 9+
+- Firebase project with Authentication enabled
+- Gmail account with App Password for SMTP
 
-### Valid Legacy IDs
-`23701A05C3`, `23701A05B8`, `24705A0501`, and [other valid student IDs]
-
-## 📚 Sections
-- **Home**: Welcome page with hero section and about information
-- **Theory**: 6 courses with 5 units each (requires login)
-- **Lab Materials**: 4 lab courses with 10 exercises each (requires login)
-- **Minimized Code**: Code snippets and resources (requires login)
-- **Contact Us**: Contact information and working contact form
-- **About Us**: Information about the platform
-
-## 🛠️ Technical Features
-
-### Frontend
-- Modern CSS Grid and Flexbox layouts
-- CSS3 animations and 3D transforms
-- JavaScript ES6+ with modules
-- Firebase Web SDK v9+
-- Responsive design principles
-- Dark mode support with persistence
-- Loading animations and modal dialogs
-
-### Backend
-- Express.js with middleware stack
-- Firebase Admin SDK for auth verification
-- Nodemailer for email functionality
-- Rate limiting and input validation
-- CORS and security headers
-- Automated keep-alive system
-
-### Auto Keep-Alive System
-- **Built-in Cron Job**: Runs every 14 minutes
-- **Self-Pinging**: Prevents Render service from sleeping
-- **No External Dependencies**: All handled internally
-- **Health Monitoring**: Detailed system information
-- **Error Handling**: Graceful failure recovery
-
-## 🔧 Local Development
-
-1. **Clone the repository**:
+### 1. Clone and Install
 ```bash
-git clone https://github.com/mohanmuralikarumuri/semprepzie.git
-cd semprepzie
+# Clone the repository
+git clone <repository-url>
+cd semprepzie-v2
+
+# Install all dependencies
+npm run install:all
 ```
 
-2. **Install dependencies**:
+### 2. Environment Configuration
+
+Copy `.env.example` to `.env` and fill in your configuration:
+
 ```bash
-npm install
+cp .env.example .env
 ```
 
-3. **Create environment file** (`.env`):
-```env
-EMAIL_USER=your-gmail@gmail.com
-EMAIL_PASS=your-gmail-app-password
-PORT=3001
-NODE_ENV=development
-```
+Required environment variables:
+- `FIREBASE_PROJECT_ID` - Your Firebase project ID
+- `FIREBASE_PRIVATE_KEY` - Firebase Admin SDK private key
+- `FIREBASE_CLIENT_EMAIL` - Firebase Admin SDK client email
+- `EMAIL_USER` - Gmail address
+- `EMAIL_PASS` - Gmail App Password
 
-4. **Start the development server**:
+### 3. Firebase Setup
+
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com)
+2. Enable Authentication → Sign-in method → Email/Password
+3. Generate a service account key:
+   - Go to Project Settings → Service Accounts
+   - Generate new private key
+   - Download the JSON file
+4. Copy the values to your `.env` file
+
+### 4. Gmail SMTP Setup
+
+1. Enable 2-Factor Authentication on your Gmail account
+2. Generate an App Password:
+   - Go to Google Account Settings → Security
+   - Generate App Password for "Mail"
+   - Use this password in `EMAIL_PASS`
+
+## 🚀 Development
+
+### Start Development Servers
 ```bash
+# Start both frontend and backend
 npm run dev
+
+# Or start individually
+npm run dev:frontend  # http://localhost:5173
+npm run dev:backend   # http://localhost:3001
 ```
 
-5. **Open the website**:
-   - Serve `index.html` with a local server, or
-   - Open directly in browser for frontend-only testing
+### Build for Production
+```bash
+# Build everything
+npm run build
 
-## 🚀 Deployment to Render
+# Build individual packages
+npm run build:frontend
+npm run build:shared
+```
 
-### Quick Deploy
-1. Fork this repository
-2. Connect to Render
-3. Set environment variables:
-   - `EMAIL_USER`: Your Gmail address
-   - `EMAIL_PASS`: Gmail app password
-   - `RENDER_EXTERNAL_URL`: Your Render app URL
-4. Deploy!
+### Available Scripts
+```bash
+npm run dev              # Start both dev servers
+npm run build            # Build all packages
+npm run start            # Start production backend
+npm run lint             # Lint all packages
+npm run type-check       # TypeScript type checking
+npm run format           # Format code with Prettier
+npm run clean            # Clean all node_modules
+```
 
-### Detailed Instructions
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment guide.
+## 📚 API Documentation
 
-## 📧 Contact Form Setup
-
-Multiple working methods included:
-- **Node.js Backend**: Full-featured with email templates
-- **PHP Backend**: Alternative for shared hosting
-- **Getform.io**: External form service (no backend needed)
-- **Direct Email**: Gmail and email client fallbacks
-
-See [CONTACT_SETUP.md](CONTACT_SETUP.md) for setup instructions.
-
-## 🔍 API Endpoints
-
-### Authentication
+### Authentication Endpoints
+- `POST /api/auth/login` - User login validation
+- `POST /api/auth/signup` - Create new account
 - `POST /api/auth/verify-token` - Verify Firebase token
+- `POST /api/auth/reset-password` - Password reset
 - `GET /api/auth/profile` - Get user profile (protected)
 
-### Contact
-- `POST /api/contact` - Submit contact form
+### Document Endpoints
+- `GET /api/documents` - List documents with pagination
+- `GET /api/documents/:id` - Get specific document
+- `GET /api/documents/:id/metadata` - Get document metadata
+- `POST /api/documents/upload` - Upload document (protected)
+- `DELETE /api/documents/:id` - Delete document (protected)
 
-### Health & Monitoring
-- `GET /api/health` - Comprehensive health check
-- `GET /api/ping` - Simple keep-alive endpoint
+### Contact Endpoints
+- `POST /api/contact/submit` - Submit contact form
+
+### Device Management
+- `POST /api/devices/register` - Register device
+- `GET /api/devices` - List user devices (protected)
+- `POST /api/devices/count` - Get device count
+- `POST /api/devices/logout-others` - Logout other devices
 
 ## 🔒 Security Features
 
-- **Input Validation**: Server-side validation with express-validator
-- **Rate Limiting**: Prevents spam and abuse
-- **CORS Protection**: Controlled cross-origin requests
-- **Security Headers**: Helmet.js security middleware
-- **Token Verification**: Firebase Admin SDK verification
-- **Email Sanitization**: XSS prevention in contact forms
+### Authentication Security
+- Firebase token verification on backend
+- Email domain restriction (@aitsrajampet.ac.in)
+- Device tracking and management
+- Session management
 
-## 🐛 Troubleshooting
+### API Security
+- Rate limiting on all endpoints
+- CORS configuration
+- Helmet security headers
+- Input validation and sanitization
+- Error handling without information leakage
 
-### Authentication Issues
-- Check Firebase configuration
-- Verify internet connection for Firebase
-- Clear browser cache and localStorage
+### Document Security
+- User-based access control
+- Email verification required for uploads
+- File type validation
+- Size limits
 
-### Contact Form Issues
-- Verify email environment variables
-- Check server logs for email errors
-- Test with different email providers
+## 📱 Document Viewer Features
 
-### Deployment Issues
-- Ensure all environment variables are set
-- Check Render build logs
-- Verify keep-alive functionality in logs
+### PDF Documents
+- **PDF.js** integration
+- Zoom controls
+- Page navigation
+- Download functionality
+- Search within document
 
-## 🤝 Contributing
+### Office Documents
+- **Microsoft Office Online Viewer**
+- Support for Word, Excel, PowerPoint
+- View-only mode
+- Responsive design
+
+### Google Drive Integration
+- Direct Google Drive file viewing
+- Automatic file type detection
+- Compressed loading for performance
+
+## 🎨 UI/UX Features
+
+### Design System
+- **Tailwind CSS** for consistent styling
+- **Responsive design** for all devices
+- **Dark/Light mode** support
+- **Loading states** and skeletons
+- **Error boundaries** and fallbacks
+
+### User Experience
+- **Fast loading** with Vite
+- **Optimistic updates**
+- **Toast notifications**
+- **Form validation** with real-time feedback
+- **Keyboard navigation** support
+
+## 🚀 Deployment
+
+### Backend Deployment (Render/Railway/Vercel)
+1. Set environment variables
+2. Build the backend: `cd backend && npm run build`
+3. Start command: `node dist/server.js`
+
+### Frontend Deployment (Vercel/Netlify)
+1. Build the frontend: `cd frontend && npm run build`
+2. Serve the `dist` folder
+3. Configure redirects for SPA routing
+
+### Environment Variables for Production
+Ensure all required environment variables are set:
+- Firebase configuration
+- Email SMTP settings
+- CORS origins
+- Rate limiting settings
+
+## 🔧 Development Guidelines
+
+### Code Style
+- **TypeScript** for type safety
+- **ESLint** for code quality
+- **Prettier** for formatting
+- **Conventional Commits** for commit messages
+
+### Testing
+- **Vitest** for frontend testing
+- **Jest** for backend testing
+- **React Testing Library** for component tests
+
+### Performance
+- **Code splitting** with dynamic imports
+- **Image optimization**
+- **Bundle analysis**
+- **Caching strategies**
+
+## 📝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
+4. Run tests and linting
 5. Submit a pull request
+
+## 📞 Support
+
+For questions or support:
+- Email: semprepzie@gmail.com
+- Check the issues section
+- Read the documentation
 
 ## 📄 License
 
-MIT License - See LICENSE file for details
-
-## 👥 Authors
-
-**Semprepzie Team**
-- Email: semprepzie@gmail.com
-- GitHub: [@mohanmuralikarumuri](https://github.com/mohanmuralikarumuri)
+This project is licensed under the MIT License.
 
 ---
 
-*Built with ❤️ for educational excellence*
-
-## Browser Support
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
-
-## Note
-This is a demonstration website. In a production environment, PDF files would be actual documents and login would be handled server-side with proper authentication.
+**Semprepzie v2.0** - Modern Education Platform
+Built with ❤️ for students and educators
