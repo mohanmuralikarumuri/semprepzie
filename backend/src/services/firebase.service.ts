@@ -27,35 +27,58 @@ export class FirebaseService {
     try {
       // Initialize Firebase Admin SDK
       if (!admin.apps.length) {
-        // Check if we have service account key file
-        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+        // First try to use the service account JSON file
+        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 
+                                  `${__dirname}/../semprepzie-315b1-firebase-adminsdk-fbsvc-6e77b6f9cb.json`;
         
-        if (serviceAccountPath) {
-          // Use service account key file
+        try {
+          // Try to load the service account file
           const serviceAccount = require(serviceAccountPath);
+          
+          if (!serviceAccount.project_id) {
+            throw new Error('Service account file missing project_id');
+          }
+          
           admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
-            projectId: process.env.FIREBASE_PROJECT_ID
+            projectId: serviceAccount.project_id
           });
-        } else {
-          // Use environment variables
+          
+          logger.info(`Firebase initialized with service account file: ${serviceAccountPath}`);
+        } catch (fileError) {
+          logger.warn(`Failed to load service account file: ${fileError instanceof Error ? fileError.message : String(fileError)}`);
+          
+          // Fallback to environment variables
+          const projectId = process.env.FIREBASE_PROJECT_ID;
+          const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+          const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+
+          if (!projectId || !privateKey || !clientEmail) {
+            throw new Error(`Missing required Firebase environment variables:
+              - FIREBASE_PROJECT_ID: ${projectId ? 'Set' : 'Missing'}
+              - FIREBASE_PRIVATE_KEY: ${privateKey ? 'Set' : 'Missing'}
+              - FIREBASE_CLIENT_EMAIL: ${clientEmail ? 'Set' : 'Missing'}`);
+          }
+
           const serviceAccount = {
             type: 'service_account',
-            project_id: process.env.FIREBASE_PROJECT_ID,
-            private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-            private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            client_email: process.env.FIREBASE_CLIENT_EMAIL,
-            client_id: process.env.FIREBASE_CLIENT_ID,
-            auth_uri: process.env.FIREBASE_AUTH_URI,
-            token_uri: process.env.FIREBASE_TOKEN_URI,
-            auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-            client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
+            project_id: projectId,
+            private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID || '',
+            private_key: privateKey,
+            client_email: clientEmail,
+            client_id: process.env.FIREBASE_CLIENT_ID || '',
+            auth_uri: process.env.FIREBASE_AUTH_URI || 'https://accounts.google.com/o/oauth2/auth',
+            token_uri: process.env.FIREBASE_TOKEN_URI || 'https://oauth2.googleapis.com/token',
+            auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL || 'https://www.googleapis.com/oauth2/v1/certs',
+            client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL || ''
           };
 
           admin.initializeApp({
             credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-            projectId: process.env.FIREBASE_PROJECT_ID
+            projectId: projectId
           });
+          
+          logger.info('Firebase initialized with environment variables');
         }
       }
 
