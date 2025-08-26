@@ -18,17 +18,16 @@ const VerifyEmailPage: React.FC = () => {
       return;
     }
 
+    let isNavigating = false;
+
     const checkVerification = async () => {
-      if (user.emailVerified) {
-        toast.success('Email verified successfully! 🎉');
-        navigate('/dashboard');
-        return;
-      }
+      if (isNavigating) return;
 
       // Reload user to get fresh verification status
       try {
         await user.reload();
-        if (user.emailVerified) {
+        if (user.emailVerified && !isNavigating) {
+          isNavigating = true;
           toast.success('Email verified successfully! 🎉');
           navigate('/dashboard');
         }
@@ -37,12 +36,19 @@ const VerifyEmailPage: React.FC = () => {
       }
     };
 
-    const interval = setInterval(checkVerification, 3000);
-    
     // Check immediately on mount
-    checkVerification();
+    if (user.emailVerified) {
+      isNavigating = true;
+      toast.success('Email verified successfully! 🎉');
+      navigate('/dashboard');
+      return;
+    }
 
-    return () => clearInterval(interval);
+    const interval = setInterval(checkVerification, 3000);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [user, navigate]);
 
   const handleResendEmail = async () => {
