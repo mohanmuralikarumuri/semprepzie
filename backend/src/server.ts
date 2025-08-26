@@ -81,13 +81,15 @@ class Server {
             "https://securetoken.googleapis.com",
             "https://apis.google.com",
             "https://drive.google.com",
+            "http://localhost:3001/api/devices/register",
             "wss:"
           ],
           frameSrc: [
             "'self'",
             "https://view.officeapps.live.com",
             "https://drive.google.com",
-            "https://docs.google.com"
+            "https://docs.google.com",
+            "https://lnbjkowlhordgyhzhpgi.supabase.co/"
           ],
           objectSrc: ["'none'"],
           upgradeInsecureRequests: []
