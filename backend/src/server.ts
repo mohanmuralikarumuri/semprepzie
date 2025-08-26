@@ -81,7 +81,10 @@ class Server {
             "https://securetoken.googleapis.com",
             "https://apis.google.com",
             "https://drive.google.com",
-            "http://localhost:3001/api/devices/register",
+            "https://lnbjkowlhordgyhzhpgi.supabase.co",
+            "https://fonts.googleapis.com",
+            "https://fonts.gstatic.com",
+            "https://semprepzie-backend.onrender.com",
             "wss:"
           ],
           frameSrc: [
