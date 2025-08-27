@@ -96,7 +96,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 /**
- * Handle document requests with offline-first strategy
+ * Handle document requests with cache-first strategy for faster loading
  * @param {Request} request - The fetch request
  * @returns {Promise<Response>} - The response
  */
@@ -105,60 +105,54 @@ async function handleDocumentRequest(request) {
   const cacheKey = generateCacheKey(url);
   
   try {
-    // First, try to get from cache
+    // CACHE-FIRST STRATEGY: Always check cache first for speed
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(cacheKey);
     
-    // If we have a cached version and we're offline, serve it
-    if (cachedResponse && !navigator.onLine) {
-      console.log('[SW] Serving cached document (offline):', url);
+    // If we have cached version, serve it immediately (online or offline)
+    if (cachedResponse) {
+      console.log('[SW] Serving from cache (fast load):', url);
+      
+      // Optionally update cache in background if online (stale-while-revalidate)
+      if (navigator.onLine) {
+        // Background update without blocking the response
+        updateCacheInBackground(request, url, cacheKey, cache);
+      }
+      
       return cachedResponse;
     }
     
-    // If we're online, check if we need to update the cache
+    // If not in cache and we're online, fetch and cache
     if (navigator.onLine) {
       try {
-        // Check if document has been updated
-        const shouldUpdate = await shouldUpdateDocument(url);
+        console.log('[SW] Not in cache, fetching fresh document:', url);
         
-        if (shouldUpdate || !cachedResponse) {
-          console.log('[SW] Fetching fresh document:', url);
+        // Fetch fresh document
+        const response = await fetch(request, {
+          mode: 'cors',
+          cache: 'no-cache'
+        });
+        
+        if (response.ok) {
+          // Clone response for caching
+          const responseToCache = response.clone();
           
-          // Fetch fresh document
-          const response = await fetch(request, {
-            mode: 'cors',
-            cache: 'no-cache'
-          });
+          // Cache the document
+          await cache.put(cacheKey, responseToCache);
           
-          if (response.ok) {
-            // Clone response for caching
-            const responseToCache = response.clone();
-            
-            // Cache the document
-            await cache.put(cacheKey, responseToCache);
-            
-            // Update metadata
-            await updateDocumentMetadata(url);
-            
-            console.log('[SW] Document cached successfully:', url);
-            return response;
-          } else {
-            throw new Error(`HTTP ${response.status}`);
-          }
+          // Update metadata
+          await updateDocumentMetadata(url);
+          
+          console.log('[SW] Document fetched and cached:', url);
+          return response;
         } else {
-          console.log('[SW] Serving cached document (up to date):', url);
-          return cachedResponse;
+          throw new Error(`HTTP ${response.status}`);
         }
       } catch (networkError) {
-        console.log('[SW] Network failed, serving cached version:', networkError);
-        
-        // If network fails but we have cache, serve cache
-        if (cachedResponse) {
-          return cachedResponse;
-        }
+        console.log('[SW] Network failed, no cache available:', networkError);
         
         // If no cache and network fails, return error
-        return new Response('Document unavailable offline', {
+        return new Response('Document unavailable', {
           status: 503,
           statusText: 'Service Unavailable'
         });
@@ -181,6 +175,39 @@ async function handleDocumentRequest(request) {
 }
 
 /**
+ * Update cache in background without blocking the main response
+ * @param {Request} request - Original request
+ * @param {string} url - Document URL
+ * @param {string} cacheKey - Cache key
+ * @param {Cache} cache - Cache instance
+ */
+async function updateCacheInBackground(request, url, cacheKey, cache) {
+  try {
+    // Check if we should update (only if cache is old)
+    const shouldUpdate = await shouldUpdateDocument(url);
+    
+    if (shouldUpdate) {
+      console.log('[SW] Background cache update started:', url);
+      
+      const response = await fetch(request, {
+        mode: 'cors',
+        cache: 'no-cache'
+      });
+      
+      if (response.ok) {
+        // Update cache with fresh content
+        await cache.put(cacheKey, response.clone());
+        await updateDocumentMetadata(url);
+        console.log('[SW] Background cache update completed:', url);
+      }
+    }
+  } catch (error) {
+    console.log('[SW] Background cache update failed:', error);
+    // Don't throw - this is background operation
+  }
+}
+
+/**
  * Check if document should be updated based on cache age and ETag
  * @param {string} url - Document URL
  * @returns {Promise<boolean>} - Whether to update
@@ -194,9 +221,9 @@ async function shouldUpdateDocument(url) {
       return true;
     }
     
-    // Check cache age (update if older than 1 hour)
+    // Check cache age (update if older than 24 hours for faster loading)
     const cacheAge = Date.now() - metadata.cachedAt;
-    const maxAge = 60 * 60 * 1000; // 1 hour
+    const maxAge = 24 * 60 * 60 * 1000; // 24 hours - longer cache for speed
     
     if (cacheAge > maxAge) {
       // Check if document has been modified using HEAD request
