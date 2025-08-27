@@ -6,7 +6,7 @@ class ApiService {
 
   constructor() {
     this.instance = axios.create({
-      baseURL: import.meta.env.PROD ? 'https://semprepzie-backend.onrender.com/api' : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'),
+      baseURL: import.meta.env.PROD ? 'https://semprepzie.onrender.com/api' : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'),
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',

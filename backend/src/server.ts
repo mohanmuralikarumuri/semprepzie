@@ -81,7 +81,6 @@ class Server {
         'http://localhost:5173',
         'http://localhost:5174', 
         'https://semprepzie.onrender.com',
-        'https://semprepzie-backend.onrender.com',
         'https://fonts.googleapis.com',
         'https://fonts.gstatic.com',
         'https://lnbjkowlhordgyhzhpgi.supabase.co'

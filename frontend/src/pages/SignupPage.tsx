@@ -120,7 +120,7 @@ const SignupPage: React.FC = () => {
               type="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="23701A05B8@aitsrajampet.ac.in"
+              placeholder="your.email@aitsrajampet.ac.in"
               error={errors.email}
               helperText="Use your college roll number format"
               required
