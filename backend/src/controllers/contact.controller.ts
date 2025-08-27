@@ -11,6 +11,11 @@ class ContactController {
   }
 
   private initializeTransporter(): void {
+    // Check if email credentials are configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      logger.warn('Email configuration missing: EMAIL_USER or EMAIL_PASS not set');
+    }
+
     this.transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.EMAIL_PORT || '587'),
@@ -20,10 +25,25 @@ class ContactController {
         pass: process.env.EMAIL_PASS
       }
     });
+
+    // Verify transporter configuration
+    this.transporter.verify((error, success) => {
+      if (error) {
+        logger.error('Email transporter verification failed:', error);
+      } else {
+        logger.info('Email transporter is ready to send messages');
+      }
+    });
   }
 
   public async submitForm(req: Request, res: Response): Promise<void> {
     const { name, email, subject, message } = req.body;
+
+    // Check email configuration
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      logger.error('Email not configured: Missing EMAIL_USER or EMAIL_PASS environment variables');
+      throw createError('Email service is not configured. Please contact the administrator.', 500);
+    }
 
     // Validation
     if (!name || !email || !message) {
