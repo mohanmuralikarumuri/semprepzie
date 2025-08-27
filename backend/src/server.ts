@@ -41,69 +41,20 @@ class Server {
   }
 
   private initializeMiddleware(): void {
-    // Security middleware
+    // Security middleware with disabled CSP for debugging
     this.app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: [
-            "'self'",
-            "'unsafe-inline'",
-            "'unsafe-eval'",
-            "https://www.gstatic.com",
-            "https://www.googletagmanager.com",
-            "https://firebase.googleapis.com",
-            "https://apis.google.com",
-            "https://cdnjs.cloudflare.com"
-          ],
-          styleSrc: [
-            "'self'",
-            "'unsafe-inline'",
-            "https://fonts.googleapis.com",
-            "https://cdnjs.cloudflare.com"
-          ],
-          fontSrc: [
-            "'self'",
-            "https://fonts.gstatic.com",
-            "https://cdnjs.cloudflare.com"
-          ],
-          imgSrc: [
-            "'self'",
-            "data:",
-            "https:",
-            "blob:"
-          ],
-          connectSrc: [
-            "'self'",
-            "https://firebase.googleapis.com",
-            "https://firestore.googleapis.com",
-            "https://identitytoolkit.googleapis.com",
-            "https://securetoken.googleapis.com",
-            "https://apis.google.com",
-            "https://drive.google.com",
-            "https://lnbjkowlhordgyhzhpgi.supabase.co",
-            "https://fonts.googleapis.com",
-            "https://fonts.gstatic.com",
-            "https://semprepzie-backend.onrender.com",
-            "wss:"
-          ],
-          frameSrc: [
-            "'self'",
-            "https://view.officeapps.live.com",
-            "https://drive.google.com",
-            "https://docs.google.com",
-            "https://lnbjkowlhordgyhzhpgi.supabase.co/"
-          ],
-          objectSrc: ["'none'"],
-          upgradeInsecureRequests: []
-        }
-      },
+      contentSecurityPolicy: false, // Temporarily disable CSP
       crossOriginEmbedderPolicy: false
     }));
 
-    // CORS configuration
+    // CORS configuration with updated origins
     this.app.use(cors({
-      origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+      origin: [
+        'http://localhost:5173',
+        'http://localhost:5174', 
+        'https://semprepzie.onrender.com',
+        'https://semprepzie-backend.onrender.com'
+      ],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization']
@@ -143,9 +94,24 @@ class Server {
     this.app.use('/api/contact', contactRoutes);
     this.app.use('/api/devices', deviceRoutes);
 
-    // Serve static files in production
+    // Serve static files in production with proper headers
     if (process.env.NODE_ENV === 'production') {
-      this.app.use(express.static('public'));
+      // Add headers for static files
+      this.app.use(express.static('public', {
+        setHeaders: (res, path, stat) => {
+          // Cache static assets for 1 day
+          res.set('Cache-Control', 'public, max-age=86400');
+          
+          // Set additional security headers for HTML files
+          if (path.endsWith('.html')) {
+            res.set({
+              'X-Content-Type-Options': 'nosniff',
+              'X-Frame-Options': 'SAMEORIGIN',
+              'X-XSS-Protection': '1; mode=block'
+            });
+          }
+        }
+      }));
       
       // Catch-all handler: send back index.html for SPA routes
       this.app.get('*', (req, res) => {
