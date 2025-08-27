@@ -85,8 +85,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // For all other requests, use network first
-  event.respondWith(fetch(event.request));
+  // For all other requests, try network first but catch CSP errors
+  event.respondWith(
+    fetch(event.request).catch(error => {
+      // If fetch fails due to CSP or network error, return a basic response
+      console.warn('Fetch failed, possibly due to CSP:', error);
+      return new Response('', { status: 204 });
+    })
+  );
 });
 
 /**

@@ -41,10 +41,38 @@ class Server {
   }
 
   private initializeMiddleware(): void {
-    // Security middleware with disabled CSP for debugging
+    // Disable all CSP headers completely
+    this.app.use((req, res, next) => {
+      // Remove any existing CSP headers
+      res.removeHeader('Content-Security-Policy');
+      res.removeHeader('Content-Security-Policy-Report-Only');
+      res.removeHeader('X-Content-Security-Policy');
+      res.removeHeader('X-WebKit-CSP');
+      
+      // Set permissive headers for external resources
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', '*');
+      
+      next();
+    });
+
+    // Security middleware with ALL CSP disabled
     this.app.use(helmet({
-      contentSecurityPolicy: false, // Temporarily disable CSP
-      crossOriginEmbedderPolicy: false
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      crossOriginOpenerPolicy: false,
+      crossOriginResourcePolicy: false,
+      dnsPrefetchControl: false,
+      frameguard: false,
+      hidePoweredBy: false,
+      hsts: false,
+      ieNoOpen: false,
+      noSniff: false,
+      originAgentCluster: false,
+      permittedCrossDomainPolicies: false,
+      referrerPolicy: false,
+      xssFilter: false
     }));
 
     // CORS configuration with updated origins
@@ -53,11 +81,14 @@ class Server {
         'http://localhost:5173',
         'http://localhost:5174', 
         'https://semprepzie.onrender.com',
-        'https://semprepzie-backend.onrender.com'
+        'https://semprepzie-backend.onrender.com',
+        'https://fonts.googleapis.com',
+        'https://fonts.gstatic.com',
+        'https://lnbjkowlhordgyhzhpgi.supabase.co'
       ],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization']
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
     }));
 
     // Compression
@@ -102,12 +133,20 @@ class Server {
           // Cache static assets for 1 day
           res.set('Cache-Control', 'public, max-age=86400');
           
+          // Remove any CSP headers from static files
+          res.removeHeader('Content-Security-Policy');
+          res.removeHeader('Content-Security-Policy-Report-Only');
+          res.removeHeader('X-Content-Security-Policy');
+          res.removeHeader('X-WebKit-CSP');
+          
           // Set additional security headers for HTML files
           if (path.endsWith('.html')) {
             res.set({
               'X-Content-Type-Options': 'nosniff',
               'X-Frame-Options': 'SAMEORIGIN',
-              'X-XSS-Protection': '1; mode=block'
+              'X-XSS-Protection': '1; mode=block',
+              // Explicitly allow all connections
+              'Permissions-Policy': 'accelerometer=*, camera=*, geolocation=*, gyroscope=*, magnetometer=*, microphone=*, payment=*, usb=*'
             });
           }
         }
@@ -115,6 +154,12 @@ class Server {
       
       // Catch-all handler: send back index.html for SPA routes
       this.app.get('*', (req, res) => {
+        // Remove CSP headers before sending HTML
+        res.removeHeader('Content-Security-Policy');
+        res.removeHeader('Content-Security-Policy-Report-Only');
+        res.removeHeader('X-Content-Security-Policy');
+        res.removeHeader('X-WebKit-CSP');
+        
         res.sendFile('index.html', { root: 'public' });
       });
     }
