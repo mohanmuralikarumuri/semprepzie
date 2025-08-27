@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import TheorySection from '../components/TheorySection';
 import CacheManagement from '../components/CacheManagement';
+import ContactForm from '../components/ContactForm';
 import './dashboard.css';
 
 interface LabExercise {
@@ -261,18 +262,7 @@ const DashboardPage: React.FC = () => {
                     
                     <div className="contact-form">
                       <h3>Send us a Message</h3>
-                      <form onSubmit={(e) => e.preventDefault()}>
-                        <div className="form-group">
-                          <input type="text" placeholder="Your Name" required />
-                        </div>
-                        <div className="form-group">
-                          <input type="email" placeholder="Your Email" required />
-                        </div>
-                        <div className="form-group">
-                          <textarea placeholder="Your Message" rows={5} required></textarea>
-                        </div>
-                        <button type="submit">Send Message</button>
-                      </form>
+                      <ContactForm />
                     </div>
                   </div>
                 </div>
@@ -338,7 +328,7 @@ const DashboardPage: React.FC = () => {
                     <div className="contact-icon">📧</div>
                     <div className="contact-details">
                       <strong>Email</strong>
-                      <p>support@semprepzie.edu</p>
+                      <p>semprepzie@gmail.com</p>
                     </div>
                   </div>
                   <div className="contact-item">
@@ -359,18 +349,7 @@ const DashboardPage: React.FC = () => {
                 
                 <div className="contact-form">
                   <h3>Send us a Message</h3>
-                  <form onSubmit={(e) => e.preventDefault()}>
-                    <div className="form-group">
-                      <input type="text" placeholder="Your Name" required />
-                    </div>
-                    <div className="form-group">
-                      <input type="email" placeholder="Your Email" required />
-                    </div>
-                    <div className="form-group">
-                      <textarea placeholder="Your Message" rows={5} required></textarea>
-                    </div>
-                    <button type="submit">Send Message</button>
-                  </form>
+                  <ContactForm />
                 </div>
               </div>
             </div>
