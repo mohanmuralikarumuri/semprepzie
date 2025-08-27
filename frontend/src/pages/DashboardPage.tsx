@@ -240,7 +240,7 @@ const DashboardPage: React.FC = () => {
                         <div className="contact-icon">📧</div>
                         <div className="contact-details">
                           <strong>Email</strong>
-                          <p>support@semprepzie.edu</p>
+                          <p>semprepzie@gmail.com</p>
                         </div>
                       </div>
                       <div className="contact-item">

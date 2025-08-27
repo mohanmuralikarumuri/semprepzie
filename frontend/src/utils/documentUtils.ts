@@ -165,7 +165,19 @@ export const subjectsData: Subject[] = [
     name: 'Artificial Intelligence',
     icon: '🤖',
     units: [
-      // Add units as they become available
+      {
+        id: 'ai-unit1',
+        name: 'Unit 1',
+        documents: [
+          {
+            id: 'ai-unit1-doc1',
+            title: 'AI Unit 1',
+            type: 'pdf',
+            url: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/AI%20Unit%201.pdf',
+            originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/AI%20Unit%201.pdf'
+          }
+        ]
+      }
     ]
   },
   {
