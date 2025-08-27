@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-secondary-200;
+  }
+  
+  body {
+    @apply bg-white text-secondary-900 font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Button Components */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary-100 text-secondary-900 hover:bg-secondary-200 focus:ring-secondary-500;
+  }
+  
+  .btn-success {
+    @apply btn bg-success-600 text-white hover:bg-success-700 focus:ring-success-500;
+  }
+  
+  .btn-danger {
+    @apply btn bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500;
+  }
+  
+  .btn-outline {
+    @apply btn border border-primary-300 text-primary-700 hover:bg-primary-50 focus:ring-primary-500;
+  }
+  
+  /* Input Components */
+  .input {
+    @apply block w-full px-3 py-2 border border-secondary-300 rounded-lg text-sm placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
+  }
+  
+  .input-error {
+    @apply input border-danger-300 focus:ring-danger-500;
+  }
+  
+  /* Card Components */
+  .card {
+    @apply bg-white rounded-xl shadow-soft border border-secondary-100 overflow-hidden;
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-secondary-100;
+  }
+  
+  .card-body {
+    @apply px-6 py-4;
+  }
+  
+  .card-footer {
+    @apply px-6 py-4 border-t border-secondary-100 bg-secondary-50;
+  }
+  
+  /* Modal Components */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50;
+  }
+  
+  .modal-content {
+    @apply bg-white rounded-xl shadow-large max-w-lg w-full max-h-[90vh] overflow-hidden;
+  }
+  
+  /* Loading Components */
+  .spinner {
+    @apply animate-spin rounded-full border-2 border-secondary-200 border-t-primary-600;
+  }
+  
+  /* Alert Components */
+  .alert {
+    @apply px-4 py-3 rounded-lg border-l-4 text-sm;
+  }
+  
+  .alert-success {
+    @apply alert bg-success-50 border-success-400 text-success-800;
+  }
+  
+  .alert-error {
+    @apply alert bg-danger-50 border-danger-400 text-danger-800;
+  }
+  
+  .alert-warning {
+    @apply alert bg-warning-50 border-warning-400 text-warning-800;
+  }
+  
+  .alert-info {
+    @apply alert bg-primary-50 border-primary-400 text-primary-800;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(203 213 225) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(203 213 225);
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(148 163 184);
+  }
+  
+  /* Text utilities */
+  .text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+}
