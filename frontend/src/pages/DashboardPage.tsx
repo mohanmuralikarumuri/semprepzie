@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 import TheorySection from '../components/TheorySection';
 import CacheManagement from '../components/CacheManagement';
 import ContactForm from '../components/ContactForm';
@@ -19,6 +21,7 @@ interface CodeSnippet {
 }
 
 const DashboardPage: React.FC = () => {
+  const { logout } = useAuth();
   const [activeSection, setActiveSection] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
@@ -142,6 +145,23 @@ const DashboardPage: React.FC = () => {
     document.body.classList.remove('menu-open');
   };
 
+  const handleLogout = async () => {
+    // Show confirmation dialog
+    const isConfirmed = window.confirm('Are you sure you want to logout?');
+    
+    if (!isConfirmed) {
+      return; // User cancelled logout
+    }
+
+    try {
+      await logout();
+      toast.success('Logged out successfully!');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout. Please try again.');
+    }
+  };
+
   const renderSection = () => {
     switch (activeSection) {
       case 'home':
@@ -159,7 +179,7 @@ const DashboardPage: React.FC = () => {
                   Welcome to Semprepzie
                 </h1>
                 <p className="hero-subtitle">
-                  Your comprehensive Java learning platform with interactive theory, practical labs, and coding exercises.
+                  Semprepzie is your smart study companion — a platform to securely store, access, and manage learning materials anytime, anywhere. With offline access and seamless syncing, your knowledge is always within reach.
                 </p>
                 <div className="hero-buttons">
                   <button 
@@ -192,11 +212,9 @@ const DashboardPage: React.FC = () => {
                   </h2>
                   <div className="about-content">
                     <div className="about-text">
-                      <h3>Empowering Students Through Java Education</h3>
+                      <h3>Empowering Students Through Smart Learning</h3>
                       <p>
-                        Semprepzie is designed to provide a comprehensive learning experience for Java programming. 
-                        Our platform combines theoretical knowledge with practical application, ensuring students 
-                        develop both understanding and hands-on skills.
+                        At Semprepzie, we believe learning should be simple, accessible, and always available. That's why we built a platform where students can upload, organize, and view their study resources in one place — even offline. Powered by modern technologies like Firebase, Supabase, and Render, our mission is to provide a reliable and user-friendly experience that helps learners focus on what truly matters: studying smarter and achieving more.
                       </p>
                     </div>
                     <div className="features">
@@ -363,15 +381,9 @@ const DashboardPage: React.FC = () => {
               <h2 className="section-title">About Semprepzie</h2>
               <div className="about-content">
                 <div className="about-text">
-                  <h3>Empowering Students Through Java Education</h3>
+                  <h3>Empowering Students Through Smart Learning</h3>
                   <p>
-                    Semprepzie is designed to provide a comprehensive learning experience for Java programming. 
-                    Our platform combines theoretical knowledge with practical application, ensuring students 
-                    develop both understanding and hands-on skills.
-                  </p>
-                  <p>
-                    Whether you're a beginner starting your programming journey or an advanced student looking 
-                    to master complex concepts, Semprepzie provides the resources and guidance you need to succeed.
+                    At Semprepzie, we believe learning should be simple, accessible, and always available. That's why we built a platform where students can upload, organize, and view their study resources in one place — even offline. Powered by modern technologies like Firebase, Supabase, and Render, our mission is to provide a reliable and user-friendly experience that helps learners focus on what truly matters: studying smarter and achieving more.
                   </p>
                 </div>
                 <div className="features">
@@ -509,6 +521,16 @@ const DashboardPage: React.FC = () => {
                 className="cache-btn"
               >
                 💾
+              </button>
+            </div>
+
+            <div className="logout-toggle">
+              <button 
+                onClick={handleLogout}
+                title="Logout"
+                className="logout-btn"
+              >
+                🚪
               </button>
             </div>
             

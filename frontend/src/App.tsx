@@ -6,6 +6,7 @@ import { cacheManager } from './utils/cacheManager';
 // Import pages (we'll create these)
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import DashboardPage from './pages/DashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
 import DocumentViewerPage from './pages/DocumentViewerPage';
@@ -106,6 +107,7 @@ const App: React.FC = () => {
             </PublicRoute>
           }
         />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/contact" element={<ContactPage />} />
 
         {/* Protected routes */}
