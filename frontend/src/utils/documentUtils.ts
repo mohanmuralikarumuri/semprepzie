@@ -177,6 +177,19 @@ export const subjectsData: Subject[] = [
             originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/AI%20Unit%201.pdf'
           }
         ]
+      },
+      {
+        id: 'ai-unit2',
+        name: 'Unit 2',
+        documents: [
+          {
+            id: 'ai-unit2-doc1',
+            title: 'Artificial Intelligence I & II Units',
+            type: 'pdf',
+            url: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/Artificial%20Intelligence%20I%20&%20II%20UNITS.pdf',
+            originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/Artificial%20Intelligence%20I%20&%20II%20UNITS.pdf'
+          }
+        ]
       }
     ]
   },

@@ -27,7 +27,10 @@ ARTIFICIAL INTELLIGENCE
 unit 1
 ---
 https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/AI%20Unit%201.pdf
-
+---
+unit 2
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/Artificial%20Intelligence%20I%20&%20II%20UNITS.pdf
 ------
 AUTOMATA THEORY & COMPILER DESIGN
 ------
