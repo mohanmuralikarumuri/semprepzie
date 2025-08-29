@@ -216,6 +216,13 @@ export const subjectsData: Subject[] = [
             type: 'pdf',
             url: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit1.pdf',
             originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit1.pdf'
+          },
+          {
+            id: 'cn-unit1-handwritten',
+            title: 'CN Unit 1 - Handwritten',
+            type: 'pdf',
+            url: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/CN-Unit-1-handwritten.pdf',
+            originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/CN-Unit-1-handwritten.pdf'
           }
         ]
       },
@@ -231,11 +238,25 @@ export const subjectsData: Subject[] = [
             originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2.pdf'
           },
           {
+            id: 'cn-unit2-part1-handwritten',
+            title: 'CN Unit 2 Part 1 - Handwritten',
+            type: 'pdf',
+            url: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-handwritten.pdf',
+            originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-handwritten.pdf'
+          },
+          {
             id: 'cn-unit2-part2',
             title: 'Computer Networks Unit 2 Part 2',
             type: 'pdf',
             url: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-2.pdf',
             originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-2.pdf'
+          },
+          {
+            id: 'cn-unit2-part2-handwritten',
+            title: 'CN Unit 2 Part 2 - Handwritten',
+            type: 'pdf',
+            url: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-2-handwritten.pdf',
+            originalUrl: 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-2-handwritten.pdf'
           }
         ]
       }

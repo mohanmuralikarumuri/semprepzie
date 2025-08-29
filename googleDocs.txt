@@ -39,15 +39,21 @@ computer networks
 unit 1
 ---
 https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit1.pdf
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/CN-Unit-1-handwritten.pdf
 
 ---
 unit 2 part 1
 ---
 https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2.pdf
 ---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-handwritten.pdf
+---
 unit 2 part 2
 ---
 https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-2.pdf
+---
+https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/cnunit2-2-handwritten.pdf
 ------
 English for competitive exam
 ---
