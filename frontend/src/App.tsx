@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { cacheManager } from './utils/cacheManager';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Import pages (we'll create these)
 import LoginPage from './pages/LoginPage';
@@ -13,6 +14,7 @@ import DocumentViewerPage from './pages/DocumentViewerPage';
 import ContactPage from './pages/ContactPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
+import MigrationPage from './pages/MigrationPage'; // Temporary - remove after migration
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -88,8 +90,9 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary-50">
-      <Routes>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-secondary-50">
+        <Routes>
         {/* Public routes */}
         <Route
           path="/login"
@@ -109,6 +112,9 @@ const App: React.FC = () => {
         />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        
+        {/* Temporary migration route - REMOVE AFTER MIGRATION */}
+        <Route path="/migration" element={<MigrationPage />} />
 
         {/* Protected routes */}
         <Route
@@ -150,7 +156,8 @@ const App: React.FC = () => {
         {/* 404 page */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

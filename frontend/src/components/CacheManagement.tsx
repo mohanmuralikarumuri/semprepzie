@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { HardDrive, Wifi, WifiOff, Download, Trash2, RefreshCw, Settings } from 'lucide-react';
 import { cacheManager, CacheStatus } from '../utils/cacheManager';
-import { subjectsData } from '../utils/documentUtils';
+import { useSubjectsData } from '../hooks/useSubjectsData';
 
 interface CacheManagementProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface CacheManagementProps {
 }
 
 export default function CacheManagement({ isOpen, onClose }: CacheManagementProps) {
+  const { subjects: subjectsData } = useSubjectsData();
   const [cacheStatus, setCacheStatus] = useState<CacheStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -77,8 +78,8 @@ export default function CacheManagement({ isOpen, onClose }: CacheManagementProp
     try {
       // Collect all document URLs
       const allDocuments: string[] = [];
-      Object.values(subjectsData).forEach(subject => {
-        Object.values(subject.units).forEach(unit => {
+      subjectsData.forEach(subject => {
+        subject.units.forEach(unit => {
           unit.documents.forEach(doc => {
             allDocuments.push(doc.url);
           });

@@ -12,6 +12,7 @@ import {
 import { auth } from '../config/firebase';
 import { apiService } from '../services/api';
 import { validateCollegeEmailShared, generateDeviceId } from '../utils';
+import { trackUserLogin } from '../services/loginTracking';
 import toast from 'react-hot-toast';
 
 interface AuthContextType {
@@ -49,6 +50,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
 
       if (user) {
+        // Track user login for analytics (stores in Firestore)
+        try {
+          await trackUserLogin(user);
+        } catch (error) {
+          console.error('Failed to track login:', error);
+          // Don't interrupt login flow
+        }
+
         // Register device when user signs in
         try {
           const deviceId = generateDeviceId();

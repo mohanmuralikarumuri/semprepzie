@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Subject, DocumentItem, subjectsData } from '../utils/documentUtils';
+import { Subject, DocumentItem } from '../utils/documentUtils';
+import { useSubjectsData } from '../hooks/useSubjectsData';
 import DocumentViewer from './DocumentViewer';
 
 interface TheorySectionProps {
@@ -7,6 +8,7 @@ interface TheorySectionProps {
 }
 
 const TheorySection: React.FC<TheorySectionProps> = ({ onPDFViewingChange }) => {
+  const { subjects: subjectsData, loading, error } = useSubjectsData();
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(null);
   const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set());
@@ -62,7 +64,27 @@ const TheorySection: React.FC<TheorySectionProps> = ({ onPDFViewingChange }) => 
       )}
 
       <div className="container">
-        {!selectedSubject ? (
+        {loading ? (
+          // Loading State
+          <div className="text-center py-12">
+            <div className="spinner w-12 h-12 mx-auto mb-4"></div>
+            <p className="text-secondary-600">Loading subjects...</p>
+          </div>
+        ) : error ? (
+          // Error State
+          <div className="text-center py-12">
+            <div className="text-red-600 mb-4">
+              <p className="text-lg font-semibold">Failed to load subjects</p>
+              <p className="text-sm">{error}</p>
+            </div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700"
+            >
+              Retry
+            </button>
+          </div>
+        ) : !selectedSubject ? (
           // Subjects Grid View
           <>
             <h2 className="section-title">Theory & Concepts</h2>

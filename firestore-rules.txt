@@ -1,0 +1,23 @@
+// Firestore Security Rules for Semprepzie
+// Copy this content and paste it in Firebase Console > Firestore Database > Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read/write their own login tracking data
+    match /user_logins/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow users to read/write their own login sessions
+      match /sessions/{sessionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Optional: Allow authenticated users to read public data
+    // (if you want to store other app data in Firestore later)
+    match /public/{document=**} {
+      allow read: if request.auth != null;
+    }
+  }
+}

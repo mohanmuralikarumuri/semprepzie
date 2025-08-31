@@ -4,6 +4,8 @@ import { toast } from 'react-hot-toast';
 import TheorySection from '../components/TheorySection';
 import CacheManagement from '../components/CacheManagement';
 import ContactForm from '../components/ContactForm';
+import LatestUpdates from '../components/LatestUpdates';
+import { LatestUpdate } from '../hooks/useLatestUpdates';
 import './dashboard.css';
 
 interface LabExercise {
@@ -202,6 +204,15 @@ const DashboardPage: React.FC = () => {
                 <div className="floating-sphere"></div>
               </div>
             </section>
+
+            {/* Latest Updates Section */}
+            <LatestUpdates 
+              limit={8}
+              onDocumentClick={(update: LatestUpdate) => {
+                // Open the document in a new tab
+                window.open(update.url, '_blank', 'noopener,noreferrer');
+              }}
+            />
 
             {/* About Section */}
             <div className="home-section-divider">

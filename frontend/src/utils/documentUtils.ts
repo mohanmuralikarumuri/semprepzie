@@ -112,7 +112,8 @@ export const getCachedDocumentMetadata = async (url: string): Promise<{ lastModi
 };
 
 // Subject data based on your updated Google Docs structure with Supabase URLs
-export const subjectsData: Subject[] = [
+// NOTE: This is now a fallback - use useSubjectsData hook for dynamic data from Supabase
+export const subjectsDataFallback: Subject[] = [
   {
     id: 'ooad',
     name: 'Object Oriented Analysis & Design',
@@ -317,19 +318,22 @@ export const subjectsData: Subject[] = [
   }
 ];
 
-// Helper function to get all documents for a subject
+// Keep the static data available for backward compatibility
+export const subjectsData = subjectsDataFallback;
+
+// Helper function to get all documents for a subject (fallback version)
 export const getSubjectDocuments = (subjectId: string): DocumentItem[] => {
-  const subject = subjectsData.find(s => s.id === subjectId);
+  const subject = subjectsDataFallback.find((s: Subject) => s.id === subjectId);
   if (!subject) return [];
   
-  return subject.units.flatMap(unit => unit.documents);
+  return subject.units.flatMap((unit: Unit) => unit.documents);
 };
 
-// Helper function to get document by ID
+// Helper function to get document by ID (fallback version)
 export const getDocumentById = (documentId: string): DocumentItem | null => {
-  for (const subject of subjectsData) {
+  for (const subject of subjectsDataFallback) {
     for (const unit of subject.units) {
-      const document = unit.documents.find(doc => doc.id === documentId);
+      const document = unit.documents.find((doc: DocumentItem) => doc.id === documentId);
       if (document) return document;
     }
   }

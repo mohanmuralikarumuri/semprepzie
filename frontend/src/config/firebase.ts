@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore  } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 // Firebase configuration - CORRECTED VALUES
 const firebaseConfig = {
@@ -25,6 +25,17 @@ if (getApps().length === 0) {
 
 // Initialize Firebase services
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Initialize Firestore with error handling
+let firestoreDb;
+try {
+  firestoreDb = getFirestore(app);
+  console.log("Firestore initialized successfully");
+} catch (error) {
+  console.warn("Firestore not available:", error);
+  firestoreDb = null;
+}
+
+export const db = firestoreDb;
 
 export default app;
