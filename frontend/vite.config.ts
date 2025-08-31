@@ -23,7 +23,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false, // Disable sourcemaps for production to save memory
+    minify: 'esbuild', // Use faster esbuild instead of terser
     rollupOptions: {
       output: {
         manualChunks: {
@@ -33,7 +34,13 @@ export default defineConfig({
           ui: ['lucide-react'],
         },
       },
+      // Reduce memory usage during build
+      maxParallelFileOps: 2,
     },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
+    // Reduce memory usage
+    target: 'es2015',
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],

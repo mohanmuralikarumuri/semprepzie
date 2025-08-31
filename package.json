@@ -11,7 +11,7 @@
   "scripts": {
     "install:all": "npm install && npm run install:frontend && npm run install:backend && npm run install:shared",
     "install:frontend": "cd frontend && npm install",
-    "install:backend": "cd backend && npm install", 
+    "install:backend": "cd backend && npm install",
     "install:shared": "cd shared && npm install",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "cd frontend && npm run dev",
@@ -19,7 +19,7 @@
     "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
     "build:shared": "cd shared && npm run build",
     "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd frontend && npm run build",
+    "build:frontend": "cd frontend && npm run build:prod",
     "start": "npm run build:shared && npm run build:frontend && npm run build:backend && npm run copy:frontend && cd backend && npm start",
     "copy:frontend": "cp -r frontend/dist/* backend/public/ || xcopy frontend\\dist\\* backend\\public\\ /E /Y",
     "start:frontend": "cd frontend && npm run preview",
@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "cross-env": "^10.0.0",
     "prettier": "^3.0.3"
   },
   "engines": {
