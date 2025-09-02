@@ -5,11 +5,13 @@ import { Clock, FileText, ExternalLink, RefreshCw } from 'lucide-react';
 interface LatestUpdatesProps {
   limit?: number;
   onDocumentClick?: (update: LatestUpdate) => void;
+  darkMode?: boolean;
 }
 
 const LatestUpdates: React.FC<LatestUpdatesProps> = ({ 
   limit = 8, 
-  onDocumentClick 
+  onDocumentClick,
+  darkMode = false
 }) => {
   const { updates, loading, error, refetch } = useLatestUpdates(limit);
 
@@ -63,15 +65,15 @@ const LatestUpdates: React.FC<LatestUpdatesProps> = ({
 
   if (loading) {
     return (
-      <div className="latest-updates-section">
+      <div className={`latest-updates-section ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="container">
-          <h2 className="section-title">
+          <h2 className={`section-title ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             <Clock className="w-6 h-6 inline-block mr-2" />
             Latest Updates
           </h2>
           <div className="text-center py-8">
             <div className="spinner w-8 h-8 mx-auto mb-4"></div>
-            <p className="text-secondary-600">Loading latest updates...</p>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-secondary-600'}`}>Loading latest updates...</p>
           </div>
         </div>
       </div>
@@ -80,9 +82,9 @@ const LatestUpdates: React.FC<LatestUpdatesProps> = ({
 
   if (error) {
     return (
-      <div className="latest-updates-section">
+      <div className={`latest-updates-section ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="container">
-          <h2 className="section-title">
+          <h2 className={`section-title ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             <Clock className="w-6 h-6 inline-block mr-2" />
             Latest Updates
           </h2>
@@ -106,15 +108,15 @@ const LatestUpdates: React.FC<LatestUpdatesProps> = ({
 
   if (updates.length === 0) {
     return (
-      <div className="latest-updates-section">
+      <div className={`latest-updates-section ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="container">
-          <h2 className="section-title">
+          <h2 className={`section-title ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             <Clock className="w-6 h-6 inline-block mr-2" />
             Latest Updates
           </h2>
           <div className="text-center py-8">
-            <FileText className="w-12 h-12 mx-auto mb-4 text-secondary-400" />
-            <p className="text-secondary-600">No updates available yet</p>
+            <FileText className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-secondary-400'}`} />
+            <p className={`${darkMode ? 'text-gray-300' : 'text-secondary-600'}`}>No updates available yet</p>
           </div>
         </div>
       </div>
@@ -122,10 +124,10 @@ const LatestUpdates: React.FC<LatestUpdatesProps> = ({
   }
 
   return (
-    <div className="latest-updates-section bg-white py-16">
+    <div className={`latest-updates-section py-16 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <div className="container">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="section-title flex items-center">
+          <h2 className={`section-title flex items-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             <Clock className="w-6 h-6 mr-2 text-primary-600" />
             Latest Updates
           </h2>
@@ -143,7 +145,11 @@ const LatestUpdates: React.FC<LatestUpdatesProps> = ({
           {updates.map((update) => (
             <div
               key={update.id}
-              className="update-card bg-secondary-50 rounded-lg p-4 hover:shadow-lg transition-all duration-300 cursor-pointer group border border-secondary-200 hover:border-primary-300"
+              className={`update-card rounded-lg p-4 hover:shadow-lg transition-all duration-300 cursor-pointer group border ${
+                darkMode 
+                  ? 'bg-gray-800 border-gray-700 hover:border-primary-400 hover:bg-gray-750' 
+                  : 'bg-secondary-50 border-secondary-200 hover:border-primary-300'
+              }`}
               onClick={() => handleDocumentClick(update)}
             >
               <div className="flex items-start justify-between mb-3">
@@ -155,19 +161,29 @@ const LatestUpdates: React.FC<LatestUpdatesProps> = ({
                     {getFileIcon(update.type)}
                   </span>
                 </div>
-                <ExternalLink className="w-4 h-4 text-secondary-400 group-hover:text-primary-600 transition-colors" />
+                <ExternalLink className={`w-4 h-4 transition-colors ${
+                  darkMode 
+                    ? 'text-gray-500 group-hover:text-primary-400' 
+                    : 'text-secondary-400 group-hover:text-primary-600'
+                }`} />
               </div>
 
-              <h3 className="font-semibold text-secondary-900 mb-2 line-clamp-2 group-hover:text-primary-700 transition-colors">
+              <h3 className={`font-semibold mb-2 line-clamp-2 transition-colors ${
+                darkMode 
+                  ? 'text-gray-100 group-hover:text-primary-300' 
+                  : 'text-secondary-900 group-hover:text-primary-700'
+              }`}>
                 {update.title}
               </h3>
 
-              <div className="text-sm text-secondary-600 mb-3">
+              <div className={`text-sm mb-3 ${darkMode ? 'text-gray-300' : 'text-secondary-600'}`}>
                 <p className="font-medium">{update.subject_name}</p>
-                <p className="text-secondary-500">{update.unit_name}</p>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-secondary-500'}`}>{update.unit_name}</p>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-secondary-500">
+              <div className={`flex items-center justify-between text-xs ${
+                darkMode ? 'text-gray-400' : 'text-secondary-500'
+              }`}>
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   {formatDate(update.uploaded_at)}
@@ -178,14 +194,16 @@ const LatestUpdates: React.FC<LatestUpdatesProps> = ({
               </div>
 
               {/* Hover effect overlay */}
-              <div className="absolute inset-0 bg-primary-50 opacity-0 group-hover:opacity-20 transition-opacity rounded-lg pointer-events-none"></div>
+              <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity rounded-lg pointer-events-none ${
+                darkMode ? 'bg-primary-400' : 'bg-primary-50'
+              }`}></div>
             </div>
           ))}
         </div>
 
         {updates.length === limit && (
           <div className="text-center mt-8">
-            <p className="text-secondary-500 text-sm">
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-secondary-500'}`}>
               Showing latest {limit} updates
             </p>
           </div>

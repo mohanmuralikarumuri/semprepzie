@@ -15,6 +15,10 @@ import ContactPage from './pages/ContactPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 import MigrationPage from './pages/MigrationPage'; // Temporary - remove after migration
+import AdminDashboard from './pages/AdminDashboard';
+
+// Import components
+import AdminRoute from './components/AdminRoute';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -147,6 +151,16 @@ const App: React.FC = () => {
             <ProtectedRoute>
               <ProfilePage />
             </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
           }
         />
 

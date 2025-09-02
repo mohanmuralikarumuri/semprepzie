@@ -19,6 +19,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  adminLogin: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -73,6 +74,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<void> => {
     try {
+      // Clear any existing admin session for regular login
+      sessionStorage.removeItem('adminSession');
+      
       // Validate email domain
       if (!validateCollegeEmailShared(email)) {
         throw new Error('Only @aitsrajampet.ac.in emails are allowed');
@@ -108,6 +112,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid email address');
       } else {
         throw new Error(error.message || 'Login failed');
+      }
+    }
+  };
+
+  const adminLogin = async (email: string, password: string): Promise<void> => {
+    try {
+      // For admin login, just authenticate with Firebase - no domain or backend validation
+      console.log('Admin login attempt for:', email);
+
+      // Sign in with Firebase directly
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Check if email is verified
+      if (!user.emailVerified) {
+        console.log('Admin email not verified, sending verification email...');
+        await sendEmailVerification(user);
+        await signOut(auth);
+        throw new Error('Admin email not verified. Please check your email for verification link and try again.');
+      }
+
+      // Mark this session as admin login
+      sessionStorage.setItem('adminSession', user.uid);
+
+      toast.success('Admin login successful!');
+    } catch (error: any) {
+      console.error('Admin login error:', error);
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/user-not-found') {
+        throw new Error('Admin account not found');
+      } else if (error.code === 'auth/wrong-password') {
+        throw new Error('Incorrect admin password');
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('Too many failed attempts. Please try again later');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Invalid email address');
+      } else {
+        throw new Error(error.message || 'Admin login failed');
       }
     }
   };
@@ -158,6 +201,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     try {
+      // Clear admin session if exists
+      sessionStorage.removeItem('adminSession');
+      
       await signOut(auth);
       toast.success('Logged out successfully');
     } catch (error: any) {
@@ -224,6 +270,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     loading,
     login,
+    adminLogin,
     signup,
     logout,
     resetPassword,

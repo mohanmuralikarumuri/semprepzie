@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAdmin } from '../hooks/useAdmin';
 import { toast } from 'react-hot-toast';
 import TheorySection from '../components/TheorySection';
 import CacheManagement from '../components/CacheManagement';
 import ContactForm from '../components/ContactForm';
 import LatestUpdates from '../components/LatestUpdates';
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import { LatestUpdate } from '../hooks/useLatestUpdates';
 import './dashboard.css';
 
@@ -24,6 +26,7 @@ interface CodeSnippet {
 
 const DashboardPage: React.FC = () => {
   const { logout } = useAuth();
+  const { isAdmin } = useAdmin();
   const [activeSection, setActiveSection] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
@@ -208,6 +211,7 @@ const DashboardPage: React.FC = () => {
             {/* Latest Updates Section */}
             <LatestUpdates 
               limit={8}
+              darkMode={isDarkTheme}
               onDocumentClick={(update: LatestUpdate) => {
                 // Open the document in a new tab
                 window.open(update.url, '_blank', 'noopener,noreferrer');
@@ -301,7 +305,7 @@ const DashboardPage: React.FC = () => {
         );
 
       case 'theory':
-        return <TheorySection onPDFViewingChange={handlePDFViewingChange} />;
+        return <TheorySection onPDFViewingChange={handlePDFViewingChange} darkMode={isDarkTheme} />;
 
       case 'lab':
         return (
@@ -519,6 +523,18 @@ const DashboardPage: React.FC = () => {
           </ul>
 
           <div className="nav-controls">
+            {isAdmin && (
+              <div className="admin-toggle">
+                <button 
+                  onClick={() => window.open('/admin', '_blank')}
+                  title="Admin Dashboard"
+                  className="admin-btn"
+                >
+                  ⚙️
+                </button>
+              </div>
+            )}
+
             <div className="theme-toggle">
               <button onClick={toggleTheme}>
                 {isDarkTheme ? '☀️' : '🌙'}
@@ -557,6 +573,9 @@ const DashboardPage: React.FC = () => {
         </div>
       </nav>
       )}
+
+      {/* Email Verification Banner */}
+      <EmailVerificationBanner show={true} />
 
       {/* Main Content */}
       <main className="main-site">

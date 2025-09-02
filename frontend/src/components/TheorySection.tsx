@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Subject, DocumentItem } from '../utils/documentUtils';
 import { useSubjectsData } from '../hooks/useSubjectsData';
 import DocumentViewer from './DocumentViewer';
+import LatestUpdates from './LatestUpdates';
 
 interface TheorySectionProps {
   onPDFViewingChange?: (isViewingPDF: boolean) => void;
+  darkMode?: boolean;
 }
 
-const TheorySection: React.FC<TheorySectionProps> = ({ onPDFViewingChange }) => {
+const TheorySection: React.FC<TheorySectionProps> = ({ onPDFViewingChange, darkMode = false }) => {
   const { subjects: subjectsData, loading, error } = useSubjectsData();
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(null);
@@ -85,8 +87,28 @@ const TheorySection: React.FC<TheorySectionProps> = ({ onPDFViewingChange }) => 
             </button>
           </div>
         ) : !selectedSubject ? (
-          // Subjects Grid View
+          // Subjects Grid View with Latest Updates at top
           <>
+            {/* Latest Updates Section */}
+            <div className="mb-12">
+              <LatestUpdates 
+                limit={8} 
+                onDocumentClick={(update) => {
+                  // Convert update to DocumentItem format and open
+                  const documentItem: DocumentItem = {
+                    id: update.id,
+                    title: update.title,
+                    url: update.url,
+                    type: update.type as 'pdf' | 'doc' | 'docx' | 'ppt' | 'pptx' | 'xls' | 'xlsx',
+                    originalUrl: update.url
+                  };
+                  setSelectedDocument(documentItem);
+                }}
+                darkMode={darkMode}
+              />
+            </div>
+
+            {/* Theory Subjects Section */}
             <h2 className="section-title">Theory & Concepts</h2>
             <div className="subjects-grid">
               {subjectsData.map((subject) => (
