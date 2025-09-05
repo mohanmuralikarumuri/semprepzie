@@ -7,6 +7,36 @@ import ErrorBoundary from './components/ErrorBoundary';
 import App from './App';
 import './styles/index.css';
 
+// Register Service Worker for PWA functionality
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+      });
+      
+      console.log('SW registered successfully:', registration.scope);
+      
+      // Listen for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version available
+              console.log('New app version available!');
+              // You can show a toast or prompt to reload
+            }
+          });
+        }
+      });
+      
+    } catch (error) {
+      console.log('SW registration failed:', error);
+    }
+  });
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>

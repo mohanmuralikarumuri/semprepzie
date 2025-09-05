@@ -19,6 +19,8 @@ import AdminDashboard from './pages/AdminDashboard';
 
 // Import components
 import AdminRoute from './components/AdminRoute';
+import InstallPWA from './components/InstallPWA';
+import OfflineIndicator from './components/OfflineIndicator';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -96,6 +98,10 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-secondary-50">
+        {/* PWA Components */}
+        <OfflineIndicator />
+        <InstallPWA />
+        
         <Routes>
         {/* Public routes */}
         <Route

@@ -1,53 +1,369 @@
-/**
- * Service Worker for Document Caching
- * 
- * This service worker implements offline-first document caching for Supabase documents.
- * It provides:
- * 1. Automatic caching of documents when first accessed
- * 2. Offline support - serves cached documents when offline
- * 3. Smart cache updates - checks for newer versions when online
- * 4. Cache versioning to handle document updates
- */
+// Enhanced Service Worker for Offline-First PWA
+const CACHE_NAME = 'semprepzie-v1.2.0';
+const STATIC_CACHE = 'semprepzie-static-v1.2.0';
+const DYNAMIC_CACHE = 'semprepzie-dynamic-v1.2.0';
+const PDF_CACHE = 'semprepzie-pdfs-v1.2.0';
+const DATA_CACHE = 'semprepzie-data-v1.2.0';
 
-const CACHE_NAME = 'semprepzie-documents-v1';
-const METADATA_CACHE = 'semprepzie-metadata-v1';
-const SUPABASE_STORAGE_URL = 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/pdfs/';
+// Maximum cache sizes (memory efficient)
+const MAX_PDF_CACHE_SIZE = 50; // Max 50 PDFs (~250MB assuming 5MB avg)
+const MAX_DYNAMIC_CACHE_SIZE = 100;
+const MAX_DATA_CACHE_SIZE = 20;
 
-// List of document URLs that should be cached
-const CACHEABLE_DOCUMENTS = [
-  'ooadunit-1.pdf',
-  'ooadunit2-1.pdf',
-  'ooadunit2-1-2.pdf',
-  'ooadunit2-2.pdf',
-  'cnunit1.pdf',
-  'cnunit2.pdf',
-  'cnunit2-2.pdf',
-  'english.pdf',
-  'quantumunit1.pdf',
-  'quantumunit2.pdf'
+// Static resources to cache immediately
+const STATIC_RESOURCES = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/offline.html', // We'll create this
+  // Core CSS and JS will be added by Vite's workbox plugin
 ];
 
-/**
- * Install event - Set up initial cache
- */
+// API endpoints that should be cached
+const CACHEABLE_DATA_PATTERNS = [
+  /\/api\/subjects/,
+  /\/api\/units/,
+  /\/api\/documents/,
+  // Supabase data endpoints
+  /supabase\.co.*\/rest\/v1\/(subjects|units|documents)/,
+];
+
+// PDF and media patterns
+const PDF_PATTERNS = [
+  /\.pdf$/i,
+  /supabase\.co.*\/storage\/v1\/object\/public\/pdfs/,
+];
+
+// Install event - cache static resources
 self.addEventListener('install', (event) => {
-  console.log('[SW] Service Worker installing...');
+  console.log('[SW] Installing...');
   
   event.waitUntil(
     Promise.all([
-      caches.open(CACHE_NAME),
-      caches.open(METADATA_CACHE)
+      // Cache static resources
+      caches.open(STATIC_CACHE).then((cache) => {
+        console.log('[SW] Caching static resources');
+        return cache.addAll(STATIC_RESOURCES);
+      }),
+      
+      // Initialize other caches
+      caches.open(DYNAMIC_CACHE),
+      caches.open(PDF_CACHE),
+      caches.open(DATA_CACHE)
     ]).then(() => {
-      console.log('[SW] Caches opened successfully');
-      // Skip waiting to activate immediately
+      console.log('[SW] Installation complete');
       return self.skipWaiting();
     })
   );
 });
 
-/**
- * Activate event - Clean up old caches
- */
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating...');
+  
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          // Delete old cache versions
+          if (cacheName.startsWith('semprepzie-') && 
+              ![STATIC_CACHE, DYNAMIC_CACHE, PDF_CACHE, DATA_CACHE].includes(cacheName)) {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      console.log('[SW] Activation complete');
+      return self.clients.claim();
+    })
+  );
+});
+
+// Fetch event - intelligent caching strategy
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Skip chrome-extension and other non-http requests
+  if (!request.url.startsWith('http')) {
+    return;
+  }
+
+  event.respondWith(
+    handleRequest(request, url)
+  );
+});
+
+// Intelligent request handling
+async function handleRequest(request, url) {
+  try {
+    // 1. PDF Files - Cache First (for offline access)
+    if (isPDFRequest(url)) {
+      return handlePDFRequest(request);
+    }
+
+    // 2. API Data - Network First with Cache Fallback
+    if (isDataRequest(url)) {
+      return handleDataRequest(request);
+    }
+
+    // 3. Static Resources - Cache First
+    if (isStaticResource(url)) {
+      return handleStaticRequest(request);
+    }
+
+    // 4. Everything else - Network First
+    return handleDynamicRequest(request);
+
+  } catch (error) {
+    console.error('[SW] Request handling error:', error);
+    return handleOfflineFallback(request);
+  }
+}
+
+// PDF caching strategy
+async function handlePDFRequest(request) {
+  const cache = await caches.open(PDF_CACHE);
+  
+  // Try cache first for PDFs (better offline experience)
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse) {
+    console.log('[SW] PDF served from cache:', request.url);
+    return cachedResponse;
+  }
+
+  try {
+    // Fetch from network
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      // Cache the PDF (implement size limit)
+      await managePDFCache(cache, request, networkResponse.clone());
+      console.log('[SW] PDF cached from network:', request.url);
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('[SW] PDF offline, no cache available:', request.url);
+    return new Response('PDF not available offline', { status: 503 });
+  }
+}
+
+// Data caching strategy (subjects, units, documents)
+async function handleDataRequest(request) {
+  const cache = await caches.open(DATA_CACHE);
+  
+  try {
+    // Try network first for fresh data
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      // Cache successful responses
+      await cache.put(request, networkResponse.clone());
+      console.log('[SW] Data cached from network:', request.url);
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    // Network failed, try cache
+    console.log('[SW] Network failed, trying cache:', request.url);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse) {
+      console.log('[SW] Data served from cache:', request.url);
+      return cachedResponse;
+    }
+    
+    // No cache available
+    return new Response(
+      JSON.stringify({ error: 'Data not available offline', offline: true }), 
+      { 
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
+}
+
+// Static resources strategy
+async function handleStaticRequest(request) {
+  const cache = await caches.open(STATIC_CACHE);
+  
+  // Try cache first for static resources
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      await cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    return handleOfflineFallback(request);
+  }
+}
+
+// Dynamic content strategy
+async function handleDynamicRequest(request) {
+  const cache = await caches.open(DYNAMIC_CACHE);
+  
+  try {
+    // Network first
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      // Cache successful responses
+      await manageDynamicCache(cache, request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    // Try cache as fallback
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    return handleOfflineFallback(request);
+  }
+}
+
+// Cache size management for PDFs
+async function managePDFCache(cache, request, response) {
+  await cache.put(request, response);
+  
+  // Check cache size and cleanup if needed
+  const keys = await cache.keys();
+  if (keys.length > MAX_PDF_CACHE_SIZE) {
+    // Remove oldest entries (FIFO)
+    const oldestKey = keys[0];
+    await cache.delete(oldestKey);
+    console.log('[SW] PDF cache cleanup, removed:', oldestKey.url);
+  }
+}
+
+// Cache size management for dynamic content
+async function manageDynamicCache(cache, request, response) {
+  await cache.put(request, response);
+  
+  const keys = await cache.keys();
+  if (keys.length > MAX_DYNAMIC_CACHE_SIZE) {
+    const oldestKey = keys[0];
+    await cache.delete(oldestKey);
+  }
+}
+
+// Offline fallback
+async function handleOfflineFallback(request) {
+  // Return offline page for navigation requests
+  if (request.mode === 'navigate') {
+    const cache = await caches.open(STATIC_CACHE);
+    const offlinePage = await cache.match('/offline.html');
+    return offlinePage || new Response('App not available offline', { status: 503 });
+  }
+  
+  return new Response('Resource not available offline', { status: 503 });
+}
+
+// Helper functions
+function isPDFRequest(url) {
+  return PDF_PATTERNS.some(pattern => pattern.test(url.href));
+}
+
+function isDataRequest(url) {
+  return CACHEABLE_DATA_PATTERNS.some(pattern => pattern.test(url.href));
+}
+
+function isStaticResource(url) {
+  const pathname = url.pathname;
+  return pathname === '/' || 
+         pathname.endsWith('.html') ||
+         pathname.endsWith('.css') ||
+         pathname.endsWith('.js') ||
+         pathname.endsWith('.json') ||
+         pathname.endsWith('.png') ||
+         pathname.endsWith('.ico');
+}
+
+// Background sync for when connection is restored
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(
+      syncData()
+    );
+  }
+});
+
+// Sync cached data when online
+async function syncData() {
+  console.log('[SW] Background sync triggered');
+  
+  try {
+    // Refresh critical data when connection is restored
+    const dataUrls = [
+      '/api/subjects',
+      '/api/units',
+      '/api/latest-updates'
+    ];
+    
+    const cache = await caches.open(DATA_CACHE);
+    
+    for (const url of dataUrls) {
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          await cache.put(url, response);
+          console.log('[SW] Background synced:', url);
+        }
+      } catch (error) {
+        console.log('[SW] Background sync failed for:', url);
+      }
+    }
+  } catch (error) {
+    console.error('[SW] Background sync error:', error);
+  }
+}
+
+// Handle push notifications (for future use)
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    const data = event.data.json();
+    
+    const options = {
+      body: data.body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: 'semprepzie-notification',
+      data: data.url
+    };
+    
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  }
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  if (event.notification.data) {
+    event.waitUntil(
+      clients.openWindow(event.notification.data)
+    );
+  }
+});
+
+console.log('[SW] Service Worker loaded successfully');
 self.addEventListener('activate', (event) => {
   console.log('[SW] Service Worker activating...');
   

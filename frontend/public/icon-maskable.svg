@@ -1,0 +1,32 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Safe area background (for maskable icon) -->
+  <rect width="192" height="192" fill="url(#gradient)"/>
+  
+  <!-- Content centered with safe margin -->
+  <g transform="translate(38.4, 38.4)">
+    <!-- Book icon scaled down to fit safe area -->
+    <rect x="10" y="15" width="60" height="70" rx="3" fill="#ffffff" opacity="0.95"/>
+    <rect x="13" y="18" width="54" height="64" rx="2" fill="#f8fafc"/>
+    
+    <!-- Book spine -->
+    <rect x="10" y="15" width="6" height="70" rx="3" fill="#e2e8f0"/>
+    
+    <!-- Pages -->
+    <line x1="20" y1="28" x2="60" y2="28" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="35" x2="57" y2="35" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="42" x2="60" y2="42" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="49" x2="54" y2="49" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="56" x2="60" y2="56" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Simple logo mark -->
+    <circle cx="77.5" cy="77.5" r="35" fill="#3b82f6" opacity="0.9"/>
+    <text x="77.5" y="87" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="bold" font-size="28">S</text>
+  </g>
+  
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
