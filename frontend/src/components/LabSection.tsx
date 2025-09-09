@@ -7,7 +7,6 @@ interface Program {
   title: string;
   description: string;
   language: 'c' | 'cpp' | 'python';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
   estimatedTime: string;
   code: string;
   expectedOutput?: string;
@@ -35,7 +34,6 @@ const LabSection: React.FC = () => {
     title: 'Test Program',
     description: 'A simple test program',
     language: 'python',
-    difficulty: 'beginner',
     estimatedTime: '5 min',
     code: 'print("Hello, World!")\nprint("Lab section is working!")',
     expectedOutput: 'Hello, World!\nLab section is working!',

@@ -19,7 +19,6 @@ interface Program {
   title: string;
   description: string;
   language: 'c' | 'cpp' | 'python';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
   estimatedTime: string;
   code: string;
   expectedOutput?: string;
@@ -69,19 +68,6 @@ const LabDashboard: React.FC<LabDashboardProps> = ({ onSelectProgram }) => {
 
     loadLabData();
   }, []);
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner':
-        return 'bg-green-100 text-green-800';
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'advanced':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   const getLanguageColor = (language: string) => {
     switch (language) {
@@ -251,9 +237,6 @@ const LabDashboard: React.FC<LabDashboardProps> = ({ onSelectProgram }) => {
                 <div className="flex flex-wrap gap-2 mb-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLanguageColor(program.language)}`}>
                     {program.language.toUpperCase()}
-                  </span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(program.difficulty)}`}>
-                    {program.difficulty}
                   </span>
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 flex items-center space-x-1">
                     <Clock size={12} />

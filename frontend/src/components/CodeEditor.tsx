@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { EditorView, keymap, highlightActiveLine, highlightActiveLineGutter, lineNumbers, drawSelection, dropCursor, rectangularSelection } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
+import { EditorView, keymap, highlightActiveLine, highlightActiveLineGutter, lineNumbers, drawSelection, dropCursor, rectangularSelection, Decoration, DecorationSet } from '@codemirror/view';
+import { EditorState, StateField, StateEffect } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
@@ -155,6 +155,97 @@ const darkTheme = EditorView.theme({
   },
 });
 
+// Copy highlight effect
+const addCopyHighlight = StateEffect.define<{from: number, to: number}>();
+const removeCopyHighlight = StateEffect.define<void>();
+
+let globalViewRef: EditorView | null = null;
+
+const copyHighlightField = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none;
+  },
+  update(highlights, tr) {
+    highlights = highlights.map(tr.changes);
+    for (let effect of tr.effects) {
+      if (effect.is(addCopyHighlight)) {
+        // Clear previous highlights
+        highlights = Decoration.none;
+        
+        const decoration = Decoration.mark({
+          class: 'cm-copy-highlight'
+        }).range(effect.value.from, effect.value.to);
+        highlights = highlights.update({
+          add: [decoration]
+        });
+        
+        // Remove highlight after 2.5 seconds
+        setTimeout(() => {
+          if (globalViewRef) {
+            globalViewRef.dispatch({
+              effects: removeCopyHighlight.of()
+            });
+          }
+        }, 2500);
+      } else if (effect.is(removeCopyHighlight)) {
+        highlights = Decoration.none;
+      }
+    }
+    return highlights;
+  },
+  provide: f => EditorView.decorations.from(f)
+});
+
+// Copy highlight theme with more visible styling
+const copyHighlightTheme = EditorView.theme({
+  '.cm-copy-highlight': {
+    backgroundColor: '#3b82f6 !important',
+    opacity: '0.6 !important',
+    borderRadius: '4px',
+    padding: '1px 2px',
+    border: '1px solid #1d4ed8',
+    animation: 'copyHighlightPulse 2s ease-out',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 0 8px rgba(59, 130, 246, 0.4)',
+  },
+  '&light .cm-copy-highlight': {
+    backgroundColor: '#dbeafe !important',
+    border: '1px solid #3b82f6',
+    color: '#1e40af !important',
+  },
+  '&dark .cm-copy-highlight': {
+    backgroundColor: '#1e40af !important',
+    border: '1px solid #60a5fa',
+    color: '#dbeafe !important',
+  },
+  '@keyframes copyHighlightPulse': {
+    '0%': {
+      backgroundColor: '#60a5fa',
+      opacity: '0.8',
+      transform: 'scale(1.02)',
+      boxShadow: '0 0 12px rgba(59, 130, 246, 0.6)',
+    },
+    '25%': {
+      backgroundColor: '#3b82f6',
+      opacity: '0.7',
+    },
+    '50%': {
+      backgroundColor: '#2563eb',
+      opacity: '0.6',
+    },
+    '75%': {
+      backgroundColor: '#3b82f6',
+      opacity: '0.4',
+    },
+    '100%': {
+      backgroundColor: '#3b82f6',
+      opacity: '0.2',
+      transform: 'scale(1)',
+      boxShadow: '0 0 4px rgba(59, 130, 246, 0.2)',
+    }
+  }
+});
+
 const CodeEditor: React.FC<CodeEditorProps> = ({
   value,
   onChange,
@@ -213,6 +304,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     const extensions = [
       ...basicExtensions,
       getLanguageExtension(),
+      copyHighlightField,
+      copyHighlightTheme,
       EditorView.updateListener.of((update: any) => {
         if (update.docChanged && !readOnly) {
           onChange(update.state.doc.toString());
@@ -245,11 +338,51 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     });
 
     viewRef.current = view;
+    globalViewRef = view;
     setIsReady(true);
 
+    // Add copy event listener with debug logs
+    const handleCopy = (e: Event) => {
+      console.log('Copy event detected', e.type);
+      if (view.hasFocus) {
+        const selection = view.state.selection.main;
+        console.log('Selection:', selection);
+        if (!selection.empty) {
+          console.log('Highlighting copy from', selection.from, 'to', selection.to);
+          // Highlight the copied text
+          view.dispatch({
+            effects: addCopyHighlight.of({
+              from: selection.from,
+              to: selection.to
+            })
+          });
+        }
+      }
+    };
+
+    // Add multiple event listeners for copy detection
+    document.addEventListener('copy', handleCopy);
+    editorRef.current.addEventListener('copy', handleCopy);
+    
+    // Also listen for Ctrl+C keydown
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        console.log('Ctrl+C detected');
+        setTimeout(() => handleCopy(e), 10); // Small delay to ensure selection is available
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+
     return () => {
+      document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('keydown', handleKeyDown);
+      if (editorRef.current) {
+        editorRef.current.removeEventListener('copy', handleCopy);
+      }
       view.destroy();
       viewRef.current = null;
+      globalViewRef = null;
       setIsReady(false);
     };
   }, [language, theme, readOnly]);

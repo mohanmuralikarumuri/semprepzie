@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Code, Plus, Edit3, Trash2, Save, X, Play, Copy, Download } from 'lucide-react';
+import { Code, Plus, Edit3, Trash2, Save, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface ProgramExercise {
@@ -8,7 +8,6 @@ interface ProgramExercise {
   description: string;
   subject: string;
   category: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
   language: 'python' | 'c' | 'cpp' | 'javascript';
   timeEstimate: string;
   concepts: string[];
@@ -28,7 +27,6 @@ interface NewProgram {
   description: string;
   subject: string;
   category: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
   language: 'python' | 'c' | 'cpp' | 'javascript';
   timeEstimate: string;
   concepts: string;
@@ -53,7 +51,6 @@ const CATEGORIES = [
   'Variables', 'Functions', 'Loops', 'Conditionals', 'Classes'
 ];
 
-const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const;
 const LANGUAGES = ['python', 'c', 'cpp', 'javascript'] as const;
 
 const AdminLabManager: React.FC = () => {
@@ -70,7 +67,6 @@ const AdminLabManager: React.FC = () => {
     description: '',
     subject: '',
     category: '',
-    difficulty: 'beginner',
     language: 'python',
     timeEstimate: '',
     concepts: '',
@@ -153,7 +149,6 @@ const AdminLabManager: React.FC = () => {
       description: newProgram.description,
       subject: newProgram.subject,
       category: newProgram.category,
-      difficulty: newProgram.difficulty,
       language: newProgram.language,
       timeEstimate: newProgram.timeEstimate,
       concepts: newProgram.concepts.split(',').map(c => c.trim()).filter(c => c),
@@ -172,7 +167,6 @@ const AdminLabManager: React.FC = () => {
       description: '',
       subject: '',
       category: '',
-      difficulty: 'beginner',
       language: 'python',
       timeEstimate: '',
       concepts: '',
@@ -301,13 +295,6 @@ const AdminLabManager: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">{program.title}</h3>
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          program.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                          program.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {program.difficulty}
-                        </span>
                         <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
                           {program.language.toUpperCase()}
                         </span>
@@ -431,19 +418,6 @@ const AdminLabManager: React.FC = () => {
                     <option value="">Select Category</option>
                     {CATEGORIES.map(category => (
                       <option key={category} value={category}>{category}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
-                  <select
-                    value={newProgram.difficulty}
-                    onChange={(e) => setNewProgram({...newProgram, difficulty: e.target.value as any})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {DIFFICULTIES.map(diff => (
-                      <option key={diff} value={diff}>{diff}</option>
                     ))}
                   </select>
                 </div>
@@ -607,18 +581,6 @@ const AdminLabManager: React.FC = () => {
                   >
                     {CATEGORIES.map(category => (
                       <option key={category} value={category}>{category}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
-                  <select
-                    value={editingProgram.difficulty}
-                    onChange={(e) => setEditingProgram({...editingProgram, difficulty: e.target.value as any})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {DIFFICULTIES.map(diff => (
-                      <option key={diff} value={diff}>{diff}</option>
                     ))}
                   </select>
                 </div>

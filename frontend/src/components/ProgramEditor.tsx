@@ -8,7 +8,6 @@ interface Program {
   title: string;
   description: string;
   language: 'c' | 'cpp' | 'python';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
   estimatedTime: string;
   code: string;
   expectedOutput?: string;
@@ -50,19 +49,6 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
   const handleReset = () => {
     setCurrentCode(program.code);
     setIsDirty(false);
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner':
-        return 'bg-green-100 text-green-800';
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'advanced':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
   };
 
   const getLanguageColor = (language: string) => {
@@ -112,9 +98,6 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLanguageColor(program.language)}`}>
                     {program.language.toUpperCase()}
                   </span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(program.difficulty)}`}>
-                    {program.difficulty}
-                  </span>
                   <span className="text-sm text-gray-500">
                     {program.estimatedTime}
                   </span>
@@ -138,6 +121,19 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
                 <span className="hidden sm:inline">
                   {editorTheme === 'light' ? 'Dark' : 'Light'}
                 </span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  console.log('Test copy highlight button clicked');
+                  // Trigger a custom event to test copy highlight
+                  const event = new Event('copy');
+                  document.dispatchEvent(event);
+                }}
+                className="flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                title="Test copy highlight"
+              >
+                <span>🔵 Test Copy</span>
               </button>
               
               <button
