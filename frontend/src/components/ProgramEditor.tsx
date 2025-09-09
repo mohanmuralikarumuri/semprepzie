@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, RefreshCw, Info } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, Info, Sun, Moon } from 'lucide-react';
 import CodeEditor from './CodeEditor';
 import CodeRunner from './CodeRunner';
 
@@ -24,6 +24,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
   const [currentCode, setCurrentCode] = useState(program.code);
   const [isDirty, setIsDirty] = useState(false);
   const [savedCode, setSavedCode] = useState(program.code);
+  const [editorTheme, setEditorTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     setCurrentCode(program.code);
@@ -129,6 +130,17 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
               )}
               
               <button
+                onClick={() => setEditorTheme(editorTheme === 'light' ? 'dark' : 'light')}
+                className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                title={`Switch to ${editorTheme === 'light' ? 'dark' : 'light'} theme`}
+              >
+                {editorTheme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+                <span className="hidden sm:inline">
+                  {editorTheme === 'light' ? 'Dark' : 'Light'}
+                </span>
+              </button>
+              
+              <button
                 onClick={handleSave}
                 disabled={!isDirty}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -190,7 +202,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
                   value={currentCode}
                   onChange={handleCodeChange}
                   language={program.language}
-                  theme="light"
+                  theme={editorTheme}
                 />
               </div>
             </div>

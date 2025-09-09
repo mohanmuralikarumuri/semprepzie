@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Code, Clock, ArrowRight, BookOpen } from 'lucide-react';
+import { programsData } from '../data/programsData';
 
 interface Subject {
   title: string;
@@ -45,11 +46,22 @@ const LabDashboard: React.FC<LabDashboardProps> = ({ onSelectProgram }) => {
     // Load lab programs data
     const loadLabData = async () => {
       try {
+        console.log('Loading lab programs data...');
         const response = await fetch('/lab-programs/programs.json');
+        console.log('Response status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
+        console.log('Lab programs data loaded:', data);
         setLabData(data);
       } catch (error) {
-        console.error('Failed to load lab programs:', error);
+        console.error('Failed to load lab programs, using fallback:', error);
+        // Use static import as fallback
+        console.log('Using static programsData as fallback');
+        setLabData(programsData);
       } finally {
         setLoading(false);
       }
@@ -262,7 +274,10 @@ const LabDashboard: React.FC<LabDashboardProps> = ({ onSelectProgram }) => {
               </div>
               
               <button
-                onClick={() => onSelectProgram(program)}
+                onClick={() => {
+                  console.log('Start Coding button clicked for program:', program.id, program.title);
+                  onSelectProgram(program);
+                }}
                 className="ml-4 flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
                 <Code size={16} />

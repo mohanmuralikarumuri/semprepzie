@@ -1,11 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap, highlightActiveLine, highlightActiveLineGutter, lineNumbers, drawSelection, dropCursor, rectangularSelection } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
-import { basicSetup } from 'codemirror';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
+import { highlightSpecialChars } from '@codemirror/view';
 import { cpp } from '@codemirror/lang-cpp';
 import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
-import type { ViewUpdate } from '@codemirror/view';
+import { tags as t } from '@lezer/highlight';
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 
 interface CodeEditorProps {
   value: string;
@@ -14,6 +19,141 @@ interface CodeEditorProps {
   theme?: 'light' | 'dark';
   readOnly?: boolean;
 }
+
+// Custom light theme with better visibility
+const lightTheme = EditorView.theme({
+  '&': {
+    fontSize: '14px',
+    fontFamily: 'JetBrains Mono, Consolas, "Courier New", monospace',
+    backgroundColor: '#ffffff',
+  },
+  '.cm-content': {
+    padding: '16px',
+    minHeight: '300px',
+    color: '#1a202c',
+    backgroundColor: '#ffffff',
+  },
+  '.cm-focused': {
+    outline: '2px solid #3b82f6',
+    outlineOffset: '-2px',
+  },
+  '.cm-editor': {
+    borderRadius: '8px',
+    border: '2px solid #e2e8f0',
+    backgroundColor: '#ffffff',
+  },
+  '.cm-scroller': {
+    lineHeight: '1.6',
+    backgroundColor: '#ffffff',
+  },
+  '.cm-line': {
+    backgroundColor: 'transparent',
+  },
+  '.cm-activeLine': {
+    backgroundColor: '#f8fafc',
+  },
+  '.cm-activeLineGutter': {
+    backgroundColor: '#f1f5f9',
+  },
+  '.cm-gutters': {
+    backgroundColor: '#f8fafc',
+    color: '#64748b',
+    border: 'none',
+    borderRight: '1px solid #e2e8f0',
+  },
+  '.cm-lineNumbers .cm-gutterElement': {
+    color: '#64748b',
+    fontSize: '13px',
+  },
+  '.cm-cursor': {
+    borderLeftColor: '#3b82f6',
+    borderLeftWidth: '2px',
+  },
+  '.cm-selectionBackground': {
+    backgroundColor: '#bfdbfe !important',
+  },
+  '.cm-searchMatch': {
+    backgroundColor: '#fef3c7',
+    outline: '1px solid #f59e0b',
+  },
+  '.cm-searchMatch.cm-searchMatch-selected': {
+    backgroundColor: '#fbbf24',
+  },
+});
+
+// Enhanced syntax highlighting for light theme
+const lightHighlightStyle = HighlightStyle.define([
+  { tag: t.keyword, color: '#7c3aed', fontWeight: 'bold' },
+  { tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName], color: '#dc2626' },
+  { tag: [t.function(t.variableName), t.labelName], color: '#0ea5e9' },
+  { tag: [t.color, t.constant(t.name), t.standard(t.name)], color: '#059669' },
+  { tag: [t.definition(t.name), t.separator], color: '#374151' },
+  { tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace], color: '#ea580c' },
+  { tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)], color: '#be185d' },
+  { tag: [t.meta, t.comment], color: '#6b7280', fontStyle: 'italic' },
+  { tag: t.strong, fontWeight: 'bold' },
+  { tag: t.emphasis, fontStyle: 'italic' },
+  { tag: t.strikethrough, textDecoration: 'line-through' },
+  { tag: t.link, color: '#2563eb', textDecoration: 'underline' },
+  { tag: t.heading, fontWeight: 'bold', color: '#1f2937' },
+  { tag: [t.atom, t.bool, t.special(t.variableName)], color: '#7c2d12' },
+  { tag: [t.processingInstruction, t.string, t.inserted], color: '#166534' },
+  { tag: t.invalid, color: '#dc2626', backgroundColor: '#fef2f2' },
+]);
+
+// Enhanced dark theme
+const darkTheme = EditorView.theme({
+  '&': {
+    fontSize: '14px',
+    fontFamily: 'JetBrains Mono, Consolas, "Courier New", monospace',
+    backgroundColor: '#1e293b',
+  },
+  '.cm-content': {
+    padding: '16px',
+    minHeight: '300px',
+    color: '#e2e8f0',
+    backgroundColor: '#1e293b',
+  },
+  '.cm-focused': {
+    outline: '2px solid #60a5fa',
+    outlineOffset: '-2px',
+  },
+  '.cm-editor': {
+    borderRadius: '8px',
+    border: '2px solid #475569',
+    backgroundColor: '#1e293b',
+  },
+  '.cm-scroller': {
+    lineHeight: '1.6',
+    backgroundColor: '#1e293b',
+  },
+  '.cm-line': {
+    backgroundColor: 'transparent',
+  },
+  '.cm-activeLine': {
+    backgroundColor: '#334155',
+  },
+  '.cm-activeLineGutter': {
+    backgroundColor: '#334155',
+  },
+  '.cm-gutters': {
+    backgroundColor: '#0f172a',
+    color: '#94a3b8',
+    border: 'none',
+    borderRight: '1px solid #475569',
+  },
+  '.cm-lineNumbers .cm-gutterElement': {
+    color: '#94a3b8',
+    fontSize: '13px',
+  },
+  '.cm-cursor': {
+    borderLeftColor: '#60a5fa',
+    borderLeftWidth: '2px',
+  },
+  '.cm-selectionBackground': {
+    backgroundColor: '#1e40af !important',
+  },
+});
 
 const CodeEditor: React.FC<CodeEditorProps> = ({
   value,
@@ -42,40 +182,49 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       }
     };
 
+    // Create basic setup extensions
+    const basicExtensions = [
+      lineNumbers(),
+      highlightActiveLineGutter(),
+      highlightSpecialChars(),
+      history(),
+      foldGutter(),
+      drawSelection(),
+      dropCursor(),
+      EditorState.allowMultipleSelections.of(true),
+      indentOnInput(),
+      bracketMatching(),
+      closeBrackets(),
+      autocompletion(),
+      rectangularSelection(),
+      highlightActiveLine(),
+      highlightSelectionMatches(),
+      keymap.of([
+        ...closeBracketsKeymap,
+        ...defaultKeymap,
+        ...searchKeymap,
+        ...historyKeymap,
+        ...foldKeymap,
+        ...completionKeymap,
+      ]),
+    ];
+
     // Create editor extensions
     const extensions = [
-      basicSetup,
+      ...basicExtensions,
       getLanguageExtension(),
       EditorView.updateListener.of((update: any) => {
         if (update.docChanged && !readOnly) {
           onChange(update.state.doc.toString());
         }
       }),
-      EditorView.theme({
-        '&': {
-          fontSize: '14px',
-          fontFamily: 'JetBrains Mono, Consolas, "Courier New", monospace',
-        },
-        '.cm-content': {
-          padding: '16px',
-          minHeight: '300px',
-        },
-        '.cm-focused': {
-          outline: 'none',
-        },
-        '.cm-editor': {
-          borderRadius: '8px',
-          border: '1px solid #e2e8f0',
-        },
-        '.cm-scroller': {
-          lineHeight: '1.5',
-        },
-      }),
     ];
 
-    // Add dark theme if needed
+    // Add theme and syntax highlighting
     if (theme === 'dark') {
-      extensions.push(oneDark);
+      extensions.push(oneDark, darkTheme);
+    } else {
+      extensions.push(lightTheme, syntaxHighlighting(lightHighlightStyle));
     }
 
     // Set read-only if needed
@@ -130,6 +279,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       />
       {!isReady && (
         <div className="editor-loading flex items-center justify-center h-32 bg-gray-50 rounded-lg">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
           <div className="text-gray-500">Loading editor...</div>
         </div>
       )}
