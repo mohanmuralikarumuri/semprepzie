@@ -1,8 +1,45 @@
 import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { FirebaseService } from '../services/firebase.service';
 import { createError } from '../middlewares/error.middleware';
 import { logger } from '../utils/logger';
-import { validateCollegeEmail, extractStudentNumber } from '@semprepzie/shared';
+// import { validateCollegeEmail, extractStudentNumber } from '@semprepzie/shared';
+
+// Temporary inline functions to replace shared module
+const ALLOWED_EMAIL_DOMAIN = '@aitsrajampet.ac.in';
+const VALID_STUDENT_NUMBERS = [
+  '0501', '0567', '0568', '0569', '0570', '0571', '0572', '0573', '0574', '0575',
+  '0576', '0577', '0578', '0579', '0580', '0581', '0582', '0583', '0584', '0585',
+  '0586', '0587', '0588', '0589', '0590', '0591', '0592', '0593', '0594', '0595',
+  '0596', '0597', '0598', '0599', '05A0', '05A1', '05A2', '05A3', '05A4', '05A5',
+  '05A6', '05A7', '05A8', '05A9', '05B0', '05B1', '05B2', '05B3', '05B4', '05B5',
+  '05B6', '05B7', '05C3', '05B8', '05B9', '05C0', '05C1', '05C2', '05C4', '05C5',
+  '05C6', '05C7', '05C8', '05C9', '05D0', '05D1', '0510', '0511', '0512', '0513'
+];
+
+function extractStudentNumber(email: string): string {
+  if (!email || typeof email !== 'string') {
+    return '';
+  }
+  const localPart = email.split('@')[0];
+  if (localPart.length >= 4) {
+    return localPart.slice(-4).toUpperCase();
+  }
+  return '';
+}
+
+function validateCollegeEmail(email: string): boolean {
+  if (!email || typeof email !== 'string') {
+    return false;
+  }
+  if (!email.endsWith(ALLOWED_EMAIL_DOMAIN)) {
+    return false;
+  }
+  const studentNumber = extractStudentNumber(email);
+  return VALID_STUDENT_NUMBERS.includes(studentNumber);
+}
 
 class AuthController {
   public async login(req: Request, res: Response): Promise<void> {

@@ -7,15 +7,9 @@ import CacheManagement from '../components/CacheManagement';
 import ContactForm from '../components/ContactForm';
 import LatestUpdates from '../components/LatestUpdates';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
+import LabSection from '../components/LabSection';
 import { LatestUpdate } from '../hooks/useLatestUpdates';
 import './dashboard.css';
-
-interface LabExercise {
-  id: string;
-  title: string;
-  icon: string;
-  description: string;
-}
 
 interface CodeSnippet {
   id: string;
@@ -33,45 +27,6 @@ const DashboardPage: React.FC = () => {
   const [showCacheManagement, setShowCacheManagement] = useState(false);
   const [isViewingPDF, setIsViewingPDF] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
-
-  const labExercises: LabExercise[] = [
-    {
-      id: 'basic-syntax',
-      title: 'Basic Syntax Practice',
-      icon: '📝',
-      description: 'Hands-on exercises for Java syntax and basic programming constructs.'
-    },
-    {
-      id: 'control-structures',
-      title: 'Control Structures',
-      icon: '🔄',
-      description: 'Practice loops, conditionals, and control flow statements.'
-    },
-    {
-      id: 'class-objects',
-      title: 'Classes & Objects',
-      icon: '🎯',
-      description: 'Build real-world applications using OOP principles.'
-    },
-    {
-      id: 'collections',
-      title: 'Collections Framework',
-      icon: '📦',
-      description: 'Work with Java collections and data manipulation.'
-    },
-    {
-      id: 'exception-handling',
-      title: 'Exception Handling',
-      icon: '⚠️',
-      description: 'Learn robust error handling and debugging techniques.'
-    },
-    {
-      id: 'file-io',
-      title: 'File I/O Operations',
-      icon: '📁',
-      description: 'Master file operations and data persistence in Java.'
-    }
-  ];
 
   const codeSnippets: CodeSnippet[] = [
     {
@@ -308,25 +263,7 @@ const DashboardPage: React.FC = () => {
         return <TheorySection onPDFViewingChange={handlePDFViewingChange} darkMode={isDarkTheme} />;
 
       case 'lab':
-        return (
-          <section className="section active">
-            <div className="container">
-              <h2 className="section-title">Lab Exercises</h2>
-              <div className="lab-grid">
-                {labExercises.map((lab) => (
-                  <div key={lab.id} className="lab-card" onClick={() => handleLabClick(lab.id)}>
-                    <div className="course-content">
-                      <span className="lab-icon">{lab.icon}</span>
-                      <h3>{lab.title}</h3>
-                      <p>{lab.description}</p>
-                      <button className="view-btn">Start Exercise</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        );
+        return <LabSection />;
 
       case 'mincode':
         return (
@@ -439,11 +376,6 @@ const DashboardPage: React.FC = () => {
       default:
         return null;
     }
-  };
-
-  const handleLabClick = (labId: string) => {
-    console.log('Lab clicked:', labId);
-    // Implement lab navigation logic
   };
 
   const handleCodeClick = (codeId: string) => {

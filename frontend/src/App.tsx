@@ -21,6 +21,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
 import InstallPWA from './components/InstallPWA';
 import OfflineIndicator from './components/OfflineIndicator';
+import LabSection from './components/LabSection';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -148,6 +149,14 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <DocumentViewerPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lab"
+          element={
+            <ProtectedRoute>
+              <LabSection />
             </ProtectedRoute>
           }
         />

@@ -1,10 +1,17 @@
 import rateLimit from 'express-rate-limit';
-import { APP_CONFIG } from '@semprepzie/shared';
+// import { APP_CONFIG } from '@semprepzie/shared';
+
+// Temporary inline config to replace shared module
+const RATE_LIMIT = {
+  WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+  MAX_REQUESTS: 100,
+  CONTACT_FORM_MAX: 5,
+};
 
 // General API rate limiter
 export const rateLimiter = rateLimit({
-  windowMs: APP_CONFIG.RATE_LIMIT.WINDOW_MS,
-  max: APP_CONFIG.RATE_LIMIT.MAX_REQUESTS,
+  windowMs: RATE_LIMIT.WINDOW_MS,
+  max: RATE_LIMIT.MAX_REQUESTS,
   message: {
     success: false,
     error: 'Too many requests from this IP, please try again later.'
@@ -19,8 +26,8 @@ export const rateLimiter = rateLimit({
 
 // Strict rate limiter for contact form
 export const contactFormLimiter = rateLimit({
-  windowMs: APP_CONFIG.RATE_LIMIT.WINDOW_MS,
-  max: APP_CONFIG.RATE_LIMIT.CONTACT_FORM_MAX,
+  windowMs: RATE_LIMIT.WINDOW_MS,
+  max: RATE_LIMIT.CONTACT_FORM_MAX,
   message: {
     success: false,
     error: 'Too many contact form submissions. Please wait before sending another message.'
