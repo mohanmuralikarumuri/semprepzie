@@ -12,6 +12,7 @@ import authRoutes from './routes/auth.routes';
 import documentRoutes from './routes/document.routes';
 import contactRoutes from './routes/contact.routes';
 import deviceRoutes from './routes/device.routes';
+import labRoutes from './routes/lab.routes';
 
 // Import middleware
 import { errorHandler } from './middlewares/error.middleware';
@@ -123,6 +124,7 @@ class Server {
     this.app.use('/api/documents', documentRoutes);
     this.app.use('/api/contact', contactRoutes);
     this.app.use('/api/devices', deviceRoutes);
+    this.app.use('/api/lab', labRoutes);
 
     // Serve static files in production with proper headers
     if (process.env.NODE_ENV === 'production') {

@@ -33,6 +33,18 @@ export const API_ENDPOINTS = {
     CHECK_COUNT: '/api/devices/count',
   },
   
+  // Lab Management
+  LAB: {
+    LIST_SUBJECTS: '/api/lab/subjects',
+    GET_SUBJECT: '/api/lab/subjects/:id',
+    CREATE_SUBJECT: '/api/lab/subjects',
+    UPDATE_SUBJECT: '/api/lab/subjects/:id',
+    DELETE_SUBJECT: '/api/lab/subjects/:id',
+    EXECUTE_CODE: '/api/lab/execute',
+    SAVE_CODE: '/api/lab/save',
+    GET_CODE: '/api/lab/code/:id',
+  },
+  
   // Health Check
   HEALTH: '/api/health',
 } as const;
@@ -295,5 +307,72 @@ export const UI_CONSTANTS = {
     POPOVER: 1060,
     TOOLTIP: 1070,
     NOTIFICATION: 1080,
+  },
+} as const;
+
+// Lab Configuration
+export const LAB_CONFIG = {
+  // Supported Programming Languages
+  LANGUAGES: {
+    C: {
+      id: 'c',
+      name: 'C',
+      extension: '.c',
+      defaultCode: `#include <stdio.h>
+
+int main() {
+    printf("Hello, World!\\n");
+    return 0;
+}`,
+      compiler: 'gcc',
+    },
+    JAVA: {
+      id: 'java',
+      name: 'Java',
+      extension: '.java',
+      defaultCode: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}`,
+      compiler: 'javac',
+    },
+    PYTHON: {
+      id: 'python',
+      name: 'Python',
+      extension: '.py',
+      defaultCode: `# Python with libraries support
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+print("Hello, World!")
+print("NumPy version:", np.__version__)
+print("Pandas version:", pd.__version__)
+print("Matplotlib version:", plt.matplotlib.__version__)`,
+      compiler: 'python3',
+      libraries: ['numpy', 'pandas', 'matplotlib', 'scipy', 'requests', 'json', 'os', 'sys', 'math'],
+    },
+  },
+  
+  // Code Editor Theme
+  EDITOR_THEME: {
+    BACKGROUND: '#1a1a1a',
+    TEXT_COLOR: '#ffffff',
+    ERROR_COLOR: '#ff6b6b',
+    COPY_COLOR: '#4dabf7',
+    SELECTION_COLOR: '#4c6ef5',
+    LINE_NUMBER_COLOR: '#6c757d',
+    COMMENT_COLOR: '#6c757d',
+    KEYWORD_COLOR: '#51cf66',
+    STRING_COLOR: '#ffd43b',
+    FUNCTION_COLOR: '#74c0fc',
+  },
+  
+  // Execution Limits
+  EXECUTION: {
+    TIMEOUT: 30000, // 30 seconds
+    MEMORY_LIMIT: '128MB',
+    MAX_OUTPUT_SIZE: 10000, // 10KB
   },
 } as const;

@@ -13,7 +13,8 @@ class ContactController {
   private initializeTransporter(): void {
     // Check if email credentials are configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      logger.warn('Email configuration missing: EMAIL_USER or EMAIL_PASS not set');
+      logger.warn('Email configuration missing: EMAIL_USER or EMAIL_PASS not set. Contact form will be disabled.');
+      return; // Don't initialize transporter if credentials are missing
     }
 
     this.transporter = nodemailer.createTransport({
@@ -26,7 +27,7 @@ class ContactController {
       }
     });
 
-    // Verify transporter configuration
+    // Verify transporter configuration only if initialized
     this.transporter.verify((error, success) => {
       if (error) {
         logger.error('Email transporter verification failed:', error);
@@ -40,7 +41,7 @@ class ContactController {
     const { name, email, subject, message } = req.body;
 
     // Check email configuration
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !this.transporter) {
       logger.error('Email not configured: Missing EMAIL_USER or EMAIL_PASS environment variables');
       throw createError('Email service is not configured. Please contact the administrator.', 500);
     }

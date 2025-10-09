@@ -8,14 +8,16 @@ import { foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemir
 import { highlightSpecialChars } from '@codemirror/view';
 import { cpp } from '@codemirror/lang-cpp';
 import { python } from '@codemirror/lang-python';
+import { java } from '@codemirror/lang-java';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { tags as t } from '@lezer/highlight';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+// @ts-ignore - Type definitions issue with @lezer/highlight
+import { tags as t } from '@lezer/highlight';
 
 interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
-  language: 'c' | 'cpp' | 'python';
+  language: 'c' | 'cpp' | 'python' | 'java';
   theme?: 'light' | 'dark';
   readOnly?: boolean;
 }
@@ -268,6 +270,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           return cpp();
         case 'python':
           return python();
+        case 'java':
+          return java();
         default:
           return [];
       }

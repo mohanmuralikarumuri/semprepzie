@@ -134,3 +134,69 @@ export interface DeviceSession {
   loginTime: string;
   lastActivity: string;
 }
+
+// Lab System Types
+export interface LabSubject {
+  id: string;
+  name: string;
+  description: string;
+  language: ProgrammingLanguage;
+  codes: LabCode[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  isActive: boolean;
+}
+
+export interface LabCode {
+  id: string;
+  title: string;
+  description?: string;
+  code: string;
+  language: ProgrammingLanguage;
+  subjectId: string;
+  isTemplate: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  tags: string[];
+}
+
+export type ProgrammingLanguage = 'c' | 'java' | 'python';
+
+export interface CodeExecutionRequest {
+  code: string;
+  language: ProgrammingLanguage;
+  input?: string;
+}
+
+export interface CodeExecutionResult {
+  success: boolean;
+  output?: string;
+  error?: string;
+  executionTime: number;
+  memoryUsed?: string;
+}
+
+export interface CodeEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  language: ProgrammingLanguage;
+  readOnly?: boolean;
+  theme?: 'dark' | 'light';
+}
+
+export interface LabSubjectFormData {
+  name: string;
+  description: string;
+  language: ProgrammingLanguage;
+}
+
+export interface LabCodeFormData {
+  title: string;
+  description?: string;
+  code: string;
+  language: ProgrammingLanguage;
+  tags: string[];
+  isTemplate: boolean;
+}
