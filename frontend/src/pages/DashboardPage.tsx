@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../hooks/useAdmin';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import TheorySection from '../components/TheorySection';
 import CacheManagement from '../components/CacheManagement';
@@ -8,52 +9,23 @@ import ContactForm from '../components/ContactForm';
 import LatestUpdates from '../components/LatestUpdates';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import LabSection from '../components/LabSection';
+import MinCodeSection from '../components/MinCodeSection';
 import { LatestUpdate } from '../hooks/useLatestUpdates';
 import './dashboard.css';
-
-interface CodeSnippet {
-  id: string;
-  title: string;
-  description: string;
-  language: string;
-}
 
 const DashboardPage: React.FC = () => {
   const { logout } = useAuth();
   const { isAdmin } = useAdmin();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [showCacheManagement, setShowCacheManagement] = useState(false);
   const [isViewingPDF, setIsViewingPDF] = useState(false);
+  const [isInEditor, setIsInEditor] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
-  const codeSnippets: CodeSnippet[] = [
-    {
-      id: 'hello-world',
-      title: 'Hello World Program',
-      description: 'Your first Java program with detailed explanations.',
-      language: 'java'
-    },
-    {
-      id: 'calculator',
-      title: 'Simple Calculator',
-      description: 'Basic arithmetic operations with user input.',
-      language: 'java'
-    },
-    {
-      id: 'student-management',
-      title: 'Student Management System',
-      description: 'Complete CRUD operations for student data.',
-      language: 'java'
-    },
-    {
-      id: 'sorting-algorithms',
-      title: 'Sorting Algorithms',
-      description: 'Implementation of various sorting techniques.',
-      language: 'java'
-    }
-  ];
+  // Code snippets array removed - for future implementation
 
   useEffect(() => {
     // Theme detection
@@ -263,28 +235,10 @@ const DashboardPage: React.FC = () => {
         return <TheorySection onPDFViewingChange={handlePDFViewingChange} darkMode={isDarkTheme} />;
 
       case 'lab':
-        return <LabSection />;
+        return <LabSection darkMode={isDarkTheme} onEditorStateChange={setIsInEditor} />;
 
       case 'mincode':
-        return (
-          <section className="section active">
-            <div className="container">
-              <h2 className="section-title">Code Snippets</h2>
-              <div className="code-grid">
-                {codeSnippets.map((snippet) => (
-                  <div key={snippet.id} className="code-card" onClick={() => handleCodeClick(snippet.id)}>
-                    <div className="course-content">
-                      <h3>{snippet.title}</h3>
-                      <p>{snippet.description}</p>
-                      <span className="language-tag">{snippet.language}</span>
-                      <button className="view-btn">View Code</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        );
+        return <MinCodeSection darkMode={isDarkTheme} onEditorStateChange={setIsInEditor} />;
 
       case 'contact':
         return (
@@ -378,19 +332,14 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const handleCodeClick = (codeId: string) => {
-    console.log('Code snippet clicked:', codeId);
-    // Implement code viewing logic
-  };
-
   const handlePDFViewingChange = (viewingPDF: boolean) => {
     setIsViewingPDF(viewingPDF);
   };
 
   return (
     <div className="dashboard-container">
-      {/* Navigation - Hidden when viewing PDF */}
-      {!isViewingPDF && (
+      {/* Navigation - Hidden when viewing PDF or in editor */}
+      {!isViewingPDF && !isInEditor && (
         <nav className="navbar">
           <div className="nav-container">
             <div className="nav-logo">
@@ -458,7 +407,7 @@ const DashboardPage: React.FC = () => {
             {isAdmin && (
               <div className="admin-toggle">
                 <button 
-                  onClick={() => window.open('/admin', '_blank')}
+                  onClick={() => navigate('/admin')}
                   title="Admin Dashboard"
                   className="admin-btn"
                 >
@@ -510,7 +459,7 @@ const DashboardPage: React.FC = () => {
       <EmailVerificationBanner show={true} />
 
       {/* Main Content */}
-      <main className="main-site">
+      <main className={`main-site ${(isViewingPDF || isInEditor) ? 'no-margin-top' : ''}`}>
         {renderSection()}
       </main>
 

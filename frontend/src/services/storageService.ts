@@ -168,6 +168,25 @@ class SupabaseStorageService {
       };
     }
   }
+
+  /**
+   * Upload a document (alias for uploadFile with specific path structure)
+   */
+  async uploadDocument(
+    file: File,
+    unitId: string,
+    onProgress?: (progress: UploadProgress) => void
+  ): Promise<UploadResult> {
+    const path = `documents/${unitId}`;
+    return this.uploadFile(file, path, onProgress);
+  }
+
+  /**
+   * Delete a document (alias for deleteFile)
+   */
+  async deleteDocument(path: string): Promise<{ success: boolean; error?: string }> {
+    return this.deleteFile(path);
+  }
 }
 
 export const storageService = new SupabaseStorageService();

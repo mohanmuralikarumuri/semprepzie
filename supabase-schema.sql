@@ -94,3 +94,51 @@ CREATE TRIGGER update_units_updated_at BEFORE UPDATE ON units
 
 CREATE TRIGGER update_documents_updated_at BEFORE UPDATE ON documents
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Create lab_subjects table for lab subject metadata
+CREATE TABLE IF NOT EXISTS lab_subjects (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    code TEXT NOT NULL UNIQUE, -- e.g. 'cn', 'ai', 'fsd'
+    description TEXT NOT NULL,
+    icon TEXT DEFAULT '📚',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create lab_programs table for practical lab exercises
+CREATE TABLE IF NOT EXISTS lab_programs (
+    id TEXT PRIMARY KEY,
+    subject_code TEXT NOT NULL REFERENCES lab_subjects(code) ON DELETE CASCADE,
+    program_name TEXT NOT NULL,
+    language TEXT NOT NULL CHECK (language IN ('c', 'cpp', 'python', 'java')),
+    code TEXT NOT NULL,
+    sample_input TEXT DEFAULT '',
+    description TEXT,
+    difficulty TEXT CHECK (difficulty IN ('easy', 'medium', 'hard')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add indexes for lab tables
+CREATE INDEX IF NOT EXISTS idx_lab_subjects_code ON lab_subjects(code);
+CREATE INDEX IF NOT EXISTS idx_lab_programs_subject_code ON lab_programs(subject_code);
+CREATE INDEX IF NOT EXISTS idx_lab_programs_language ON lab_programs(language);
+
+-- Enable RLS for lab tables
+ALTER TABLE lab_subjects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lab_programs ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to lab tables
+CREATE POLICY "Allow public read access to lab_subjects" ON lab_subjects
+    FOR SELECT USING (true);
+
+CREATE POLICY "Allow public read access to lab_programs" ON lab_programs
+    FOR SELECT USING (true);
+
+-- Create triggers for lab tables
+CREATE TRIGGER update_lab_subjects_updated_at BEFORE UPDATE ON lab_subjects
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_lab_programs_updated_at BEFORE UPDATE ON lab_programs
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

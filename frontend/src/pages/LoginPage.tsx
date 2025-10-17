@@ -5,6 +5,7 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { validateCollegeEmailShared, extractStudentNumberShared } from '../utils';
 import toast from 'react-hot-toast';
+import { AlertCircle, X } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,15 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  
+  // Report Issue Modal
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportForm, setReportForm] = useState({
+    name: '',
+    email: '',
+    issue: ''
+  });
+  const [reportLoading, setReportLoading] = useState(false);
 
   const { login, adminLogin } = useAuth();
 
@@ -82,6 +92,47 @@ const LoginPage: React.FC = () => {
     } else {
       // Switching back to student mode - clear the field
       setEmail('');
+    }
+  };
+
+  const handleReportIssue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!reportForm.name || !reportForm.email || !reportForm.issue) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    setReportLoading(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/api/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: reportForm.name,
+          email: reportForm.email,
+          subject: 'Login/Signup Issue Report',
+          message: reportForm.issue
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('Issue reported successfully! We will get back to you soon.');
+        setShowReportModal(false);
+        setReportForm({ name: '', email: '', issue: '' });
+      } else {
+        toast.error(data.message || 'Failed to send report');
+      }
+    } catch (error) {
+      console.error('Failed to report issue:', error);
+      toast.error('Failed to send report. Please try again later.');
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -198,7 +249,93 @@ const LoginPage: React.FC = () => {
             Need help? Contact us
           </Link>
         </div>
+
+        {/* Report Issue Button */}
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => setShowReportModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+          >
+            <AlertCircle className="w-4 h-4" />
+            Having trouble logging in? Report an issue
+          </button>
+        </div>
       </div>
+
+      {/* Report Issue Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Report Login/Signup Issue</h3>
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              Having trouble logging in or signing up? Let us know and we'll help you out!
+            </p>
+
+            <form onSubmit={handleReportIssue} className="space-y-4">
+              <Input
+                label="Your Name"
+                type="text"
+                value={reportForm.name}
+                onChange={(e) => setReportForm({ ...reportForm, name: e.target.value })}
+                placeholder="Enter your name"
+                required
+              />
+
+              <Input
+                label="Your Email"
+                type="email"
+                value={reportForm.email}
+                onChange={(e) => setReportForm({ ...reportForm, email: e.target.value })}
+                placeholder="your.email@aitsrajampet.ac.in"
+                required
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Describe the Issue
+                </label>
+                <textarea
+                  value={reportForm.issue}
+                  onChange={(e) => setReportForm({ ...reportForm, issue: e.target.value })}
+                  placeholder="Describe the problem you're facing..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="flex-1 bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  disabled={reportLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  loading={reportLoading}
+                  disabled={reportLoading}
+                >
+                  Send Report
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

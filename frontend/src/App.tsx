@@ -15,7 +15,7 @@ import ContactPage from './pages/ContactPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 import MigrationPage from './pages/MigrationPage'; // Temporary - remove after migration
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboardNew from './pages/AdminDashboardNew';
 
 // Import components
 import AdminRoute from './components/AdminRoute';
@@ -174,7 +174,7 @@ const App: React.FC = () => {
           path="/admin"
           element={
             <AdminRoute>
-              <AdminDashboard />
+              <AdminDashboardNew />
             </AdminRoute>
           }
         />

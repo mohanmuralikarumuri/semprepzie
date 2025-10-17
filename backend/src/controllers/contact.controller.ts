@@ -68,7 +68,7 @@ class ContactController {
       // Email content
       const mailOptions = {
         from: `"${name}" <${process.env.EMAIL_USER}>`,
-        to: process.env.EMAIL_USER || 'semprepzie@gmail.com',
+        to: process.env.EMAIL_TO || 'semprepzie@gmail.com',
         replyTo: email,
         subject: subject || `New Contact Form Message from ${name}`,
         html: this.generateEmailTemplate(name, email, message, subject)

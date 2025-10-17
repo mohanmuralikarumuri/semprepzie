@@ -3,11 +3,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { Upload, FileText, Users, BarChart3, Settings, Code } from 'lucide-react';
 import AdminUpload from '../components/AdminUpload';
 import AdminLabManager from '../components/AdminLabManager';
+import AdminLabProgramsManager from '../components/AdminLabProgramsManager';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'upload' | 'lab'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'lab' | 'programs'>('upload');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -122,16 +123,27 @@ const AdminDashboard: React.FC = () => {
                       <span>Lab Programs</span>
                     </div>
                   </button>
+                  <button
+                    onClick={() => setActiveTab('programs')}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === 'programs'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Settings className="w-4 h-4" />
+                      <span>Manage Subjects</span>
+                    </div>
+                  </button>
                 </nav>
               </div>
               
               {/* Tab Content */}
               <div className="p-0">
-                {activeTab === 'upload' ? (
-                  <AdminUpload />
-                ) : (
-                  <AdminLabManager />
-                )}
+                {activeTab === 'upload' && <AdminUpload />}
+                {activeTab === 'lab' && <AdminLabManager />}
+                {activeTab === 'programs' && <AdminLabProgramsManager />}
               </div>
             </div>
           </div>
@@ -163,6 +175,19 @@ const AdminDashboard: React.FC = () => {
                     <div>
                       <p className="font-medium text-gray-900">Manage Lab Programs</p>
                       <p className="text-sm text-gray-500">Add and edit coding exercises</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('programs')}
+                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center">
+                    <Settings className="w-5 h-5 text-gray-500 mr-3" />
+                    <div>
+                      <p className="font-medium text-gray-900">Manage Subjects</p>
+                      <p className="text-sm text-gray-500">Add subjects and programs</p>
                     </div>
                   </div>
                 </button>

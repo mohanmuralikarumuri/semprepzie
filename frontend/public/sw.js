@@ -1,14 +1,44 @@
-// Enhanced Service Worker for Offline-First PWA
+// Enhanced Service Worker for Offline-First PWA with Code Execution
 const CACHE_NAME = 'semprepzie-v1.2.0';
 const STATIC_CACHE = 'semprepzie-static-v1.2.0';
 const DYNAMIC_CACHE = 'semprepzie-dynamic-v1.2.0';
 const PDF_CACHE = 'semprepzie-pdfs-v1.2.0';
 const DATA_CACHE = 'semprepzie-data-v1.2.0';
+const CODE_EXECUTION_CACHE = 'semprepzie-code-v1.2.0';
+
+// Supabase storage URL for document caching
+const SUPABASE_STORAGE_URL = 'https://lnbjkowlhordgyhzhpgi.supabase.co/storage/v1/object/public/';
 
 // Maximum cache sizes (memory efficient)
 const MAX_PDF_CACHE_SIZE = 50; // Max 50 PDFs (~250MB assuming 5MB avg)
 const MAX_DYNAMIC_CACHE_SIZE = 100;
 const MAX_DATA_CACHE_SIZE = 20;
+const MAX_CODE_CACHE_SIZE = 200; // Cache 200 code execution results
+
+// Code execution cache for offline capabilities
+let codeExecutionCache = new Map();
+let pyodideInstance = null;
+
+// Load Pyodide in service worker for offline Python execution
+async function loadPyodide() {
+  if (pyodideInstance) return pyodideInstance;
+  
+  try {
+    // Import Pyodide in service worker
+    importScripts('https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js');
+    
+    pyodideInstance = await loadPyodide({
+      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/',
+      packages: [] // Load minimal packages
+    });
+    
+    console.log('[SW] Pyodide loaded in service worker');
+    return pyodideInstance;
+  } catch (error) {
+    console.error('[SW] Failed to load Pyodide:', error);
+    return null;
+  }
+}
 
 // Static resources to cache immediately
 const STATIC_RESOURCES = [
@@ -49,9 +79,12 @@ self.addEventListener('install', (event) => {
       // Initialize other caches
       caches.open(DYNAMIC_CACHE),
       caches.open(PDF_CACHE),
-      caches.open(DATA_CACHE)
+      caches.open(DATA_CACHE),
+      caches.open(CODE_EXECUTION_CACHE)
     ]).then(() => {
       console.log('[SW] Installation complete');
+      // Pre-load Pyodide for faster offline execution
+      loadPyodide().catch(console.error);
       return self.skipWaiting();
     })
   );
@@ -67,7 +100,7 @@ self.addEventListener('activate', (event) => {
         cacheNames.map((cacheName) => {
           // Delete old cache versions
           if (cacheName.startsWith('semprepzie-') && 
-              ![STATIC_CACHE, DYNAMIC_CACHE, PDF_CACHE, DATA_CACHE].includes(cacheName)) {
+              ![STATIC_CACHE, DYNAMIC_CACHE, PDF_CACHE, DATA_CACHE, CODE_EXECUTION_CACHE].includes(cacheName)) {
             console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
@@ -79,6 +112,247 @@ self.addEventListener('activate', (event) => {
     })
   );
 });
+
+// Message event - handle code execution requests
+self.addEventListener('message', async (event) => {
+  const { data } = event;
+  
+  if (data.type === 'EXECUTE_CODE') {
+    await handleCodeExecution(event);
+  } else if (data.type === 'CACHE_CODE_RESULT') {
+    await cacheCodeResult(data.cacheKey, data.result);
+  } else if (data.type === 'GET_CACHE_STATUS') {
+    const status = await getCodeCacheStatus();
+    event.ports[0]?.postMessage({ type: 'CACHE_STATUS', status });
+  }
+});
+
+// Handle code execution in service worker
+async function handleCodeExecution(event) {
+  const { id, language, code } = event.data;
+  
+  try {
+    // Generate cache key
+    const cacheKey = generateCacheKey(language, code);
+    
+    // Check cache first
+    const cachedResult = await getCachedCodeResult(cacheKey);
+    if (cachedResult) {
+      console.log('[SW] Using cached code execution result');
+      event.ports[0]?.postMessage({
+        type: 'CODE_EXECUTION_RESULT',
+        id,
+        result: cachedResult
+      });
+      return;
+    }
+    
+    let result;
+    
+    if (language.toLowerCase() === 'python') {
+      // Execute Python code offline using Pyodide
+      result = await executePythonOffline(code);
+    } else if (language.toLowerCase() === 'c' || language.toLowerCase() === 'cpp') {
+      // For C/C++, try online compilation or fallback to simulation
+      result = await executeCCodeOffline(code, language);
+    } else {
+      result = {
+        output: '',
+        error: `Language ${language} not supported in offline mode`
+      };
+    }
+    
+    // Cache the result
+    await cacheCodeResult(cacheKey, result);
+    
+    // Send result back
+    event.ports[0]?.postMessage({
+      type: 'CODE_EXECUTION_RESULT',
+      id,
+      result
+    });
+    
+  } catch (error) {
+    console.error('[SW] Code execution error:', error);
+    event.ports[0]?.postMessage({
+      type: 'CODE_EXECUTION_RESULT',
+      id,
+      result: {
+        output: '',
+        error: `Execution failed: ${error.message}`
+      }
+    });
+  }
+}
+
+// Execute Python code using Pyodide in service worker
+async function executePythonOffline(code) {
+  try {
+    const pyodide = await loadPyodide();
+    if (!pyodide) {
+      throw new Error('Pyodide not available');
+    }
+    
+    // Enhanced output capture
+    const outputCapture = `
+import sys
+from io import StringIO
+import traceback
+
+old_stdout = sys.stdout
+old_stderr = sys.stderr
+sys.stdout = captured_output = StringIO()
+sys.stderr = captured_error = StringIO()
+
+try:
+${code.split('\n').map(line => '    ' + line).join('\n')}
+except Exception as e:
+    print(f"Error: {e}")
+    traceback.print_exc()
+finally:
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+
+output = captured_output.getvalue()
+error = captured_error.getvalue()
+{"output": output, "error": error if error.strip() else None}
+`;
+    
+    const result = pyodide.runPython(outputCapture);
+    
+    return {
+      output: result.output || "Program executed successfully (no output)",
+      error: result.error
+    };
+    
+  } catch (error) {
+    return {
+      output: '',
+      error: `Python execution error: ${error.message}`
+    };
+  }
+}
+
+// Execute C/C++ code (fallback to simulation in offline mode)
+async function executeCCodeOffline(code, language) {
+  // In offline mode, provide enhanced simulation
+  // This could be replaced with WASM compilation in future
+  
+  try {
+    let output = "";
+    
+    // Enhanced C simulation with better pattern matching
+    const printfRegex = /printf\s*\(\s*"([^"]+)"[^)]*\)/g;
+    let match;
+    
+    while ((match = printfRegex.exec(code)) !== null) {
+      let printText = match[1];
+      printText = printText.replace(/\\n/g, '\n');
+      printText = printText.replace(/\\t/g, '\t');
+      printText = printText.replace(/\\"/g, '"');
+      
+      // Handle format specifiers
+      if (printText.includes('%d')) {
+        printText = printText.replace(/%d/g, () => Math.floor(Math.random() * 100).toString());
+      }
+      if (printText.includes('%s')) {
+        printText = printText.replace(/%s/g, 'string_value');
+      }
+      
+      output += printText;
+    }
+    
+    if (!output) {
+      output = `${language.toUpperCase()} program simulated successfully. Add printf statements to see output.\n[Note: Running in offline simulation mode - connect to internet for full compilation]`;
+    }
+    
+    return { output };
+    
+  } catch (error) {
+    return {
+      output: '',
+      error: `${language} simulation error: ${error.message}`
+    };
+  }
+}
+
+// Generate cache key for code execution
+function generateCacheKey(language, code) {
+  const normalizedCode = code.trim().replace(/\s+/g, ' ');
+  // Simple hash function
+  let hash = 0;
+  for (let i = 0; i < normalizedCode.length; i++) {
+    const char = normalizedCode.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return `${language}:${hash}`;
+}
+
+// Cache code execution result
+async function cacheCodeResult(cacheKey, result) {
+  try {
+    const cache = await caches.open(CODE_EXECUTION_CACHE);
+    const response = new Response(JSON.stringify({
+      result,
+      timestamp: Date.now()
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    await cache.put(cacheKey, response);
+    
+    // Manage cache size
+    await manageCacheSize(CODE_EXECUTION_CACHE, MAX_CODE_CACHE_SIZE);
+  } catch (error) {
+    console.error('[SW] Failed to cache code result:', error);
+  }
+}
+
+// Get cached code execution result
+async function getCachedCodeResult(cacheKey) {
+  try {
+    const cache = await caches.open(CODE_EXECUTION_CACHE);
+    const response = await cache.match(cacheKey);
+    
+    if (response) {
+      const data = await response.json();
+      const age = Date.now() - data.timestamp;
+      
+      // Cache expires after 30 minutes
+      if (age < 30 * 60 * 1000) {
+        return data.result;
+      } else {
+        // Remove expired cache
+        await cache.delete(cacheKey);
+      }
+    }
+  } catch (error) {
+    console.error('[SW] Failed to get cached code result:', error);
+  }
+  
+  return null;
+}
+
+// Get code cache status
+async function getCodeCacheStatus() {
+  try {
+    const cache = await caches.open(CODE_EXECUTION_CACHE);
+    const keys = await cache.keys();
+    
+    return {
+      totalCached: keys.length,
+      maxSize: MAX_CODE_CACHE_SIZE,
+      pyodideReady: !!pyodideInstance
+    };
+  } catch (error) {
+    return {
+      totalCached: 0,
+      maxSize: MAX_CODE_CACHE_SIZE,
+      pyodideReady: false
+    };
+  }
+}
 
 // Fetch event - intelligent caching strategy
 self.addEventListener('fetch', (event) => {

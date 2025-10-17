@@ -1,0 +1,467 @@
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Code, Terminal, ArrowLeft } from 'lucide-react';
+import { codeExecutionService } from '../services/codeExecution';
+import NeoGlassEditorCodeMirror from './NeoGlassEditorCodeMirror';
+
+// Define types locally
+interface LabSubject {
+  id: string;
+  name: string;
+  description: string;
+  icon?: string;
+}
+
+interface LabProgram {
+  id: string;
+  subject: 'cn' | 'ai' | 'fsd';
+  program_name: string;
+  language: 'c' | 'cpp' | 'python' | 'java';
+  code: string;
+  sample_input: string;
+  description?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+}
+
+interface LabSectionProps {
+  darkMode?: boolean;
+  onEditorStateChange?: (isInEditor: boolean) => void;
+}
+
+const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorStateChange }) => {
+  const [subjects, setSubjects] = useState<LabSubject[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<LabSubject | null>(null);
+  const [selectedCode, setSelectedCode] = useState<LabCode | null>(null);
+  const [currentCode, setCurrentCode] = useState('');
+  const [input, setInput] = useState('');
+  const [output, setOutput] = useState('');
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<'subjects' | 'codes' | 'editor'>('subjects');
+
+  // Load subjects on component mount
+  useEffect(() => {
+    loadSubjects();
+  }, []);
+
+  // Notify parent when editor view changes
+  useEffect(() => {
+    if (onEditorStateChange) {
+      onEditorStateChange(view === 'editor');
+    }
+  }, [view, onEditorStateChange]);
+
+  const loadSubjects = async () => {
+    try {
+      setLoading(true);
+      
+      // Use static data instead of API call for now
+      const staticSubjects: LabSubject[] = [
+        {
+          id: '1',
+          name: 'Data Structures',
+          description: 'Learn fundamental data structures like arrays, linked lists, stacks, and queues',
+          language: 'python',
+          codes: [
+            {
+              id: 'ds-1',
+              title: 'Array Operations',
+              description: 'Basic array operations: insertion, deletion, traversal',
+              code: `# Array operations in Python
+arr = [1, 2, 3, 4, 5]
+
+# Insert element
+arr.append(6)
+print("After insertion:", arr)
+
+# Delete element
+arr.remove(3)
+print("After deletion:", arr)
+
+# Traverse array
+for i, element in enumerate(arr):
+    print(f"Index {i}: {element}")`,
+              language: 'python',
+              tags: ['arrays', 'basics', 'operations']
+            },
+            {
+              id: 'ds-2',
+              title: 'Linked List Implementation',
+              description: 'Create and manipulate a simple linked list',
+              code: `# Simple linked list implementation
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+    
+    def append(self, data):
+        new_node = Node(data)
+        if not self.head:
+            self.head = new_node
+            return
+        current = self.head
+        while current.next:
+            current = current.next
+        current.next = new_node
+    
+    def display(self):
+        elements = []
+        current = self.head
+        while current:
+            elements.append(current.data)
+            current = current.next
+        return elements
+
+# Test the linked list
+ll = LinkedList()
+ll.append(1)
+ll.append(2)
+ll.append(3)
+print("Linked list:", ll.display())`,
+              language: 'python',
+              tags: ['linked-list', 'data-structures', 'implementation']
+            }
+          ]
+        },
+        {
+          id: '2',
+          name: 'C Programming',
+          description: 'Basic C programming concepts and syntax',
+          language: 'c',
+          codes: [
+            {
+              id: 'c-1',
+              title: 'Hello World',
+              description: 'Your first C program',
+              code: `#include <stdio.h>
+
+int main() {
+    printf("Hello, World!\\n");
+    return 0;
+}`,
+              language: 'c',
+              tags: ['hello-world', 'basics', 'introduction']
+            },
+            {
+              id: 'c-2',
+              title: 'Calculator',
+              description: 'Simple calculator with basic operations',
+              code: `#include <stdio.h>
+
+int main() {
+    float num1, num2, result;
+    char operator;
+    
+    printf("Enter first number: ");
+    scanf("%f", &num1);
+    
+    printf("Enter operator (+, -, *, /): ");
+    scanf(" %c", &operator);
+    
+    printf("Enter second number: ");
+    scanf("%f", &num2);
+    
+    switch(operator) {
+        case '+':
+            result = num1 + num2;
+            break;
+        case '-':
+            result = num1 - num2;
+            break;
+        case '*':
+            result = num1 * num2;
+            break;
+        case '/':
+            if(num2 != 0)
+                result = num1 / num2;
+            else {
+                printf("Error: Division by zero!\\n");
+                return 1;
+            }
+            break;
+        default:
+            printf("Error: Invalid operator!\\n");
+            return 1;
+    }
+    
+    printf("Result: %.2f\\n", result);
+    return 0;
+}`,
+              language: 'c',
+              tags: ['calculator', 'arithmetic', 'switch-case']
+            }
+          ]
+        },
+        {
+          id: '3',
+          name: 'Algorithms',
+          description: 'Common algorithms and problem-solving techniques',
+          language: 'python',
+          codes: [
+            {
+              id: 'algo-1',
+              title: 'Bubble Sort',
+              description: 'Implement the bubble sort algorithm',
+              code: `def bubble_sort(arr):
+    n = len(arr)
+    
+    # Traverse through all array elements
+    for i in range(n):
+        # Flag to optimize - if no swapping happens, array is sorted
+        swapped = False
+        
+        # Last i elements are already in place
+        for j in range(0, n - i - 1):
+            # Traverse the array from 0 to n-i-1
+            # Swap if the element found is greater than the next element
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        
+        # If no two elements were swapped, array is sorted
+        if not swapped:
+            break
+    
+    return arr
+
+# Test the sorting algorithm
+numbers = [64, 34, 25, 12, 22, 11, 90]
+print("Original array:", numbers)
+
+sorted_numbers = bubble_sort(numbers.copy())
+print("Sorted array:", sorted_numbers)`,
+              language: 'python',
+              tags: ['sorting', 'bubble-sort', 'algorithms']
+            }
+          ]
+        }
+      ];
+      
+      setSubjects(staticSubjects);
+    } catch (error) {
+      console.error('Failed to load subjects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const executeCode = async () => {
+    if (!selectedCode || !currentCode.trim()) return;
+
+    // Check if input is empty and prompt user
+    if (!input.trim()) {
+      const needsInput = window.confirm(
+        'No input provided. Does your program require input?\n\n' +
+        'Click OK if you want to add input, or Cancel to run without input.'
+      );
+      
+      if (needsInput) {
+        // Focus on input textarea
+        const inputElement = document.querySelector('textarea[placeholder*="input"]') as HTMLTextAreaElement;
+        if (inputElement) {
+          inputElement.focus();
+        }
+        return; // Don't execute, let user add input
+      }
+    }
+
+    setIsExecuting(true);
+    setOutput('');
+
+    try {
+      const result = await codeExecutionService.executeCode({
+        language: selectedCode.language,
+        code: currentCode,
+        stdin: input
+      });
+      
+      if (result.success) {
+        // Format output to show input if provided
+        let formattedOutput = '';
+        if (input.trim()) {
+          formattedOutput = `Input:\n${input}\n\n`;
+        }
+        formattedOutput += `Output:\n${result.output || 'Program executed successfully (no output)'}`;
+        setOutput(formattedOutput);
+      } else {
+        setOutput(`Error: ${result.error || 'Execution failed'}`);
+      }
+    } catch (error) {
+      setOutput(`Execution Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  const selectSubject = (subject: LabSubject) => {
+    setSelectedSubject(subject);
+    setView('codes');
+  };
+
+  const selectCode = (code: LabCode) => {
+    setSelectedCode(code);
+    setCurrentCode(code.code);
+    setInput('');
+    setOutput('');
+    setView('editor');
+  };
+
+  const goBack = () => {
+    if (view === 'editor') {
+      setView('codes');
+      setSelectedCode(null);
+    } else if (view === 'codes') {
+      setView('subjects');
+      setSelectedSubject(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      {/* Header - Hidden in editor view for cleaner experience */}
+      {view !== 'editor' && (
+        <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
+                {view !== 'subjects' && (
+                  <button
+                    onClick={goBack}
+                    className={`flex items-center ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} transition-colors flex-shrink-0`}
+                  >
+                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                    <span className="text-sm sm:text-base">Back</span>
+                  </button>
+                )}
+                <div className="flex items-center space-x-2 min-w-0">
+                  <Terminal className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                  <h1 className="text-lg sm:text-2xl font-bold truncate">
+                    {view === 'subjects' && 'Programming Lab'}
+                    {view === 'codes' && selectedSubject?.name}
+                  </h1>
+                </div>
+              </div>
+              
+              {/* Remove admin panel for now */}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="flex-1">
+        {view === 'subjects' && (
+          <div className="p-3 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {subjects.map((subject) => (
+                <div
+                  key={subject.id}
+                  onClick={() => selectSubject(subject)}
+                  className={`rounded-lg p-4 sm:p-6 cursor-pointer transition-colors border ${
+                    darkMode 
+                      ? 'bg-gray-800 hover:bg-gray-700 border-gray-600' 
+                      : 'bg-white hover:bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <BookOpen className={`w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 flex-shrink-0 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                    <div className="min-w-0">
+                      <h3 className="text-lg sm:text-xl font-semibold truncate">{subject.name}</h3>
+                      <span className={`text-xs sm:text-sm uppercase font-mono ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {subject.language}
+                      </span>
+                    </div>
+                  </div>
+                  <p className={`mb-3 sm:mb-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{subject.description}</p>
+                  <div className={`flex items-center text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <Code className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    {subject.codes?.length || 0} programs
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {view === 'codes' && selectedSubject && (
+          <div className="p-3 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              {selectedSubject.codes?.map((code) => (
+                <div
+                  key={code.id}
+                  onClick={() => selectCode(code)}
+                  className={`rounded-lg p-4 sm:p-6 cursor-pointer transition-colors border ${
+                    darkMode 
+                      ? 'bg-gray-800 hover:bg-gray-700 border-gray-600' 
+                      : 'bg-white hover:bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3 gap-2">
+                    <h3 className="text-base sm:text-lg font-semibold flex-1 min-w-0">{code.title}</h3>
+                    <span className="text-xs bg-blue-600 px-2 py-1 rounded uppercase font-mono text-white flex-shrink-0">
+                      {code.language}
+                    </span>
+                  </div>
+                  {code.description && (
+                    <p className={`mb-3 sm:mb-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{code.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {code.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className={`text-xs px-2 py-1 rounded ${
+                          darkMode 
+                            ? 'bg-gray-700 text-gray-300' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )) || (
+                <div className="col-span-full text-center py-12">
+                  <Code className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+                  <p className={darkMode ? 'text-gray-400' : 'text-gray-500'}>No programs available yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {view === 'editor' && selectedCode && (
+          <NeoGlassEditorCodeMirror
+            value={currentCode}
+            onChange={setCurrentCode}
+            language={selectedCode.language}
+            darkMode={darkMode}
+            onRun={async (code, inputText) => {
+              setCurrentCode(code);
+              setInput(inputText);
+              await executeCode();
+            }}
+            isExecuting={isExecuting}
+            output={output}
+            onBack={goBack}
+            title={selectedCode.title}
+            originalCode={selectedCode.code} // Pass the original template code
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default LabSection;

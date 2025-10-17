@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, RefreshCw, Info, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, Info } from 'lucide-react';
 import CodeEditor from './CodeEditor';
-import CodeRunner from './CodeRunner';
+
 
 interface Program {
   id: string;
@@ -17,13 +17,13 @@ interface Program {
 interface ProgramEditorProps {
   program: Program;
   onBack: () => void;
+  darkMode?: boolean;
 }
 
-const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
+const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack, darkMode = false }) => {
   const [currentCode, setCurrentCode] = useState(program.code);
   const [isDirty, setIsDirty] = useState(false);
   const [savedCode, setSavedCode] = useState(program.code);
-  const [editorTheme, setEditorTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     setCurrentCode(program.code);
@@ -74,31 +74,33 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
   }, [program.id, program.code]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b sticky top-0 z-10`}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
-                className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
+                className={`flex items-center space-x-2 transition-colors ${
+                  darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
+                }`}
               >
                 <ArrowLeft size={20} />
                 <span>Back to Programs</span>
               </button>
               
-              <div className="h-6 w-px bg-gray-300"></div>
+              <div className={`h-6 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
               
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   {program.title}
                 </h1>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLanguageColor(program.language)}`}>
                     {program.language.toUpperCase()}
                   </span>
-                  <span className="text-sm text-gray-500">
+                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     {program.estimatedTime}
                   </span>
                 </div>
@@ -107,21 +109,10 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
 
             <div className="flex items-center space-x-3">
               {isDirty && (
-                <span className="text-sm text-orange-600 font-medium">
+                <span className={`text-sm font-medium ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
                   Unsaved changes
                 </span>
               )}
-              
-              <button
-                onClick={() => setEditorTheme(editorTheme === 'light' ? 'dark' : 'light')}
-                className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                title={`Switch to ${editorTheme === 'light' ? 'dark' : 'light'} theme`}
-              >
-                {editorTheme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-                <span className="hidden sm:inline">
-                  {editorTheme === 'light' ? 'Dark' : 'Light'}
-                </span>
-              </button>
               
               <button
                 onClick={() => {
@@ -198,7 +189,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
                   value={currentCode}
                   onChange={handleCodeChange}
                   language={program.language}
-                  theme={editorTheme}
+                  theme={darkMode ? 'dark' : 'light'}
                 />
               </div>
             </div>
@@ -206,12 +197,7 @@ const ProgramEditor: React.FC<ProgramEditorProps> = ({ program, onBack }) => {
 
           {/* Right Panel - Code Runner */}
           <div className="space-y-4">
-            <CodeRunner
-              code={currentCode}
-              language={program.language}
-              onReset={handleReset}
-              expectedOutput={program.expectedOutput}
-            />
+         
 
             {/* Tips */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

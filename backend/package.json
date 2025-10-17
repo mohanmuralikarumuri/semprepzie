@@ -8,7 +8,7 @@
     "dev": "concurrently \"npm run build:watch\" \"npm run start:dev\"",
     "start:dev": "nodemon dist/server.js",
     "build": "npm run clean && tsc && npm run copy-assets && npm run create-public",
-    "copy-assets": "cp semprepzie-315b1-firebase-adminsdk-fbsvc-6e77b6f9cb.json dist/ || copy semprepzie-315b1-firebase-adminsdk-fbsvc-6e77b6f9cb.json dist\\",
+    "copy-assets": "xcopy semprepzie-315b1-firebase-adminsdk-fbsvc-6e77b6f9cb.json dist\\ /Y || cp semprepzie-315b1-firebase-adminsdk-fbsvc-6e77b6f9cb.json dist/",
     "create-public": "mkdir public 2>nul || echo \"public folder ready\"",
     "build:watch": "tsc --watch",
     "clean": "rimraf dist",

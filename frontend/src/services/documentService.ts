@@ -176,6 +176,135 @@ class DocumentService {
       };
     }
   }
+
+  /**
+   * Get documents by unit ID
+   */
+  async getDocumentsByUnit(unitId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('unit_id', unitId)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) throw error;
+
+      return { success: true, documents: data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch documents'
+      };
+    }
+  }
+
+  /**
+   * Create a new subject
+   */
+  async createSubject(name: string, icon: string = '📚') {
+    try {
+      const cleanName = name.trim().toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const subjectId = `subject-${cleanName}-${Date.now()}`;
+
+      const { data, error } = await supabase
+        .from('subjects')
+        .insert({
+          id: subjectId,
+          name: name.trim(),
+          icon: icon,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return { success: true, subject: data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create subject'
+      };
+    }
+  }
+
+  /**
+   * Delete a subject
+   */
+  async deleteSubject(subjectId: string) {
+    try {
+      const { error } = await supabase
+        .from('subjects')
+        .delete()
+        .eq('id', subjectId);
+
+      if (error) throw error;
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete subject'
+      };
+    }
+  }
+
+  /**
+   * Delete a unit
+   */
+  async deleteUnit(unitId: string) {
+    try {
+      const { error } = await supabase
+        .from('units')
+        .delete()
+        .eq('id', unitId);
+
+      if (error) throw error;
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete unit'
+      };
+    }
+  }
+
+  /**
+   * Save document metadata
+   */
+  async saveDocumentMetadata(metadata: { title: string; unit_id: string; file_path: string; file_size: number }) {
+    try {
+      const documentId = `doc-${Date.now()}`;
+
+      const { data, error } = await supabase
+        .from('documents')
+        .insert({
+          id: documentId,
+          unit_id: metadata.unit_id,
+          title: metadata.title,
+          url: metadata.file_path,
+          original_url: metadata.file_path,
+          type: 'pdf',
+          uploaded_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return { success: true, document: data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save document metadata'
+      };
+    }
+  }
 }
 
 export const documentService = new DocumentService();
