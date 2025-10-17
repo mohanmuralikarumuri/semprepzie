@@ -35,12 +35,16 @@ export default defineConfig({
         },
       },
       // Reduce memory usage during build
-      maxParallelFileOps: 2,
+      maxParallelFileOps: 1, // Reduce to 1 for low memory environments
     },
     // Increase chunk size warning limit
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1500,
     // Reduce memory usage
     target: 'es2015',
+    // Optimize for low memory
+    assetsInlineLimit: 4096, // Inline smaller assets
+    cssCodeSplit: true, // Split CSS to reduce memory
+    reportCompressedSize: false, // Skip gzip reporting to save memory
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],

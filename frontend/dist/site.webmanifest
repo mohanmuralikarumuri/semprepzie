@@ -1,0 +1,21 @@
+{
+  "name": "Semprepzie - Educational Portal",
+  "short_name": "Semprepzie",
+  "description": "Educational portal for AITS Rajampet students",
+  "icons": [
+    {
+      "src": "/favicon-32x32.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon-16x16.svg",
+      "sizes": "16x16",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}

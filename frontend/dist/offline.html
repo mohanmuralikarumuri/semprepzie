@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semprepzie - Offline</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .offline-container {
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .offline-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      opacity: 0.9;
+    }
+
+    .features {
+      text-align: left;
+      margin-bottom: 30px;
+    }
+
+    .features ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .features li {
+      margin: 12px 0;
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .features li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    .retry-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      margin: 8px;
+    }
+
+    .retry-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .status-indicator {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .status-offline {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-online {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <div class="offline-icon pulse">📚</div>
+    <h1>You're Offline</h1>
+    <p>No internet connection detected, but don't worry! Semprepzie works offline too.</p>
+    
+    <div class="features">
+      <h3 style="margin-bottom: 16px;">Available offline:</h3>
+      <ul>
+        <li>Previously viewed PDFs and documents</li>
+        <li>Cached subject and unit information</li>
+        <li>Basic app navigation</li>
+        <li>Your study progress</li>
+      </ul>
+    </div>
+
+    <div id="connection-status" class="status-indicator status-offline">
+      🔴 Currently offline
+    </div>
+
+    <div style="margin-top: 20px;">
+      <button class="retry-btn" onclick="window.location.reload()">
+        🔄 Retry Connection
+      </button>
+      <a href="/" class="retry-btn">
+        🏠 Go to Home
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // Monitor connection status
+    function updateConnectionStatus() {
+      const statusElement = document.getElementById('connection-status');
+      
+      if (navigator.onLine) {
+        statusElement.textContent = '🟢 Back online!';
+        statusElement.className = 'status-indicator status-online';
+        
+        // Auto-redirect after a short delay when back online
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        statusElement.textContent = '🔴 Currently offline';
+        statusElement.className = 'status-indicator status-offline';
+      }
+    }
+
+    // Listen for connection changes
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+
+    // Initial status check
+    updateConnectionStatus();
+
+    // Periodic connection check (some browsers don't fire online/offline events reliably)
+    setInterval(() => {
+      fetch('/ping', { 
+        method: 'HEAD',
+        cache: 'no-cache'
+      }).then(() => {
+        if (!navigator.onLine) {
+          // Force online status if we can reach the server
+          window.dispatchEvent(new Event('online'));
+        }
+      }).catch(() => {
+        // Connection failed
+        if (navigator.onLine) {
+          window.dispatchEvent(new Event('offline'));
+        }
+      });
+    }, 30000); // Check every 30 seconds
+  </script>
+</body>
+</html>

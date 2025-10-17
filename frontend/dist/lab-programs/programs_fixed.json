@@ -1,0 +1,203 @@
+{
+  "subjects": {
+    "data-structures": {
+      "title": "Data Structures",
+      "description": "Learn fundamental data structures with hands-on programming",
+      "icon": "🗃️",
+      "categories": {
+        "arrays": {
+          "title": "Arrays",
+          "programs": [
+            {
+              "id": "array-basic",
+              "title": "Array Basic Operations",
+              "description": "Learn basic array operations like insertion, deletion, and traversal",
+              "language": "c",
+              
+              "estimatedTime": "15 min",
+              "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int arr[10] = {1, 2, 3, 4, 5};\n    int size = 5;\n    \n    printf(\"Original Array: \");\n    for(int i = 0; i < size; i++) {\n        printf(\"%d \", arr[i]);\n    }\n    printf(\"\\n\");\n    \n    // Insert element at position\n    int pos = 2, element = 99;\n    for(int i = size; i > pos; i--) {\n        arr[i] = arr[i-1];\n    }\n    arr[pos] = element;\n    size++;\n    \n    printf(\"After insertion: \");\n    for(int i = 0; i < size; i++) {\n        printf(\"%d \", arr[i]);\n    }\n    printf(\"\\n\");\n    \n    return 0;\n}",
+              "expectedOutput": "Original Array: 1 2 3 4 5 \\nAfter insertion: 1 2 99 3 4 5",
+              "concepts": ["arrays", "insertion", "traversal"]
+            },
+            {
+              "id": "array-search",
+              "title": "Linear Search in Array",
+              "description": "Implement linear search algorithm",
+              "language": "python",
+               
+              "estimatedTime": "10 min",
+              "code": "def linear_search(arr, target):\n    \"\"\"Linear search implementation\"\"\"\n    for i in range(len(arr)):\n        if arr[i] == target:\n            return i\n    return -1\n\n# Test the function\narr = [64, 34, 25, 12, 22, 11, 90]\ntarget = 22\n\nprint(f\"Array: {arr}\")\nprint(f\"Searching for: {target}\")\n\nresult = linear_search(arr, target)\nif result != -1:\n    print(f\"Element {target} found at index {result}\")\nelse:\n    print(f\"Element {target} not found\")\n\n# Search for another element\ntarget2 = 100\nresult2 = linear_search(arr, target2)\nif result2 != -1:\n    print(f\"Element {target2} found at index {result2}\")\nelse:\n    print(f\"Element {target2} not found\")",
+              "expectedOutput": "Array: [64, 34, 25, 12, 22, 11, 90]\\nSearching for: 22\\nElement 22 found at index 4\\nElement 100 not found",
+              "concepts": ["searching", "linear search", "algorithms"]
+            },
+            {
+              "id": "array-max-min",
+              "title": "Find Maximum and Minimum",
+              "description": "Find the maximum and minimum elements in an array",
+              "language": "python",
+              
+              "estimatedTime": "10 min",
+              "code": "def find_max_min(arr):\n    \"\"\"Find maximum and minimum elements in array\"\"\"\n    if not arr:\n        return None, None\n    \n    max_val = arr[0]\n    min_val = arr[0]\n    \n    for num in arr[1:]:\n        if num > max_val:\n            max_val = num\n        if num < min_val:\n            min_val = num\n    \n    return max_val, min_val\n\n# Test with different arrays\ntest_arrays = [\n    [64, 34, 25, 12, 22, 11, 90],\n    [1, 2, 3, 4, 5],\n    [-5, -1, -10, -3],\n    [42]\n]\n\nfor i, arr in enumerate(test_arrays, 1):\n    print(f\"Array {i}: {arr}\")\n    max_val, min_val = find_max_min(arr)\n    print(f\"Maximum: {max_val}, Minimum: {min_val}\")\n    print()",
+              "expectedOutput": "Array 1: [64, 34, 25, 12, 22, 11, 90]\\nMaximum: 90, Minimum: 11\\n\\nArray 2: [1, 2, 3, 4, 5]\\nMaximum: 5, Minimum: 1\\n\\nArray 3: [-5, -1, -10, -3]\\nMaximum: -1, Minimum: -10\\n\\nArray 4: [42]\\nMaximum: 42, Minimum: 42",
+              "concepts": ["arrays", "iteration", "comparison"]
+            }
+          ]
+        },
+        "linked-lists": {
+          "title": "Linked Lists",
+          "programs": [
+            {
+              "id": "linked-list-basic",
+              "title": "Singly Linked List",
+              "description": "Create and manipulate a singly linked list",
+              "language": "c",
+              
+              "estimatedTime": "25 min",
+              "code": "#include <stdio.h>\n#include <stdlib.h>\n\nstruct Node {\n    int data;\n    struct Node* next;\n};\n\nvoid printList(struct Node* head) {\n    while (head != NULL) {\n        printf(\"%d -> \", head->data);\n        head = head->next;\n    }\n    printf(\"NULL\\n\");\n}\n\nint main() {\n    struct Node* head = NULL;\n    struct Node* second = NULL;\n    struct Node* third = NULL;\n    \n    head = (struct Node*)malloc(sizeof(struct Node));\n    second = (struct Node*)malloc(sizeof(struct Node));\n    third = (struct Node*)malloc(sizeof(struct Node));\n    \n    head->data = 1;\n    head->next = second;\n    \n    second->data = 2;\n    second->next = third;\n    \n    third->data = 3;\n    third->next = NULL;\n    \n    printf(\"Linked List: \");\n    printList(head);\n    \n    return 0;\n}",
+              "expectedOutput": "Linked List: 1 -> 2 -> 3 -> NULL",
+              "concepts": ["linked lists", "pointers", "dynamic memory"]
+            },
+            {
+              "id": "linked-list-python",
+              "title": "Linked List in Python",
+              "description": "Implement a linked list class in Python",
+              "language": "python",
+              
+              "estimatedTime": "20 min",
+              "code": "class Node:\n    \"\"\"Node class for linked list\"\"\"\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nclass LinkedList:\n    \"\"\"Singly Linked List implementation\"\"\"\n    def __init__(self):\n        self.head = None\n    \n    def append(self, data):\n        \"\"\"Add element at the end\"\"\"\n        new_node = Node(data)\n        if not self.head:\n            self.head = new_node\n            return\n        \n        current = self.head\n        while current.next:\n            current = current.next\n        current.next = new_node\n    \n    def prepend(self, data):\n        \"\"\"Add element at the beginning\"\"\"\n        new_node = Node(data)\n        new_node.next = self.head\n        self.head = new_node\n    \n    def display(self):\n        \"\"\"Display the linked list\"\"\"\n        elements = []\n        current = self.head\n        while current:\n            elements.append(str(current.data))\n            current = current.next\n        return \" -> \".join(elements) + \" -> None\"\n    \n    def length(self):\n        \"\"\"Get length of linked list\"\"\"\n        count = 0\n        current = self.head\n        while current:\n            count += 1\n            current = current.next\n        return count\n\n# Test the linked list\nll = LinkedList()\nprint(\"Empty list:\", ll.display())\n\n# Add elements\nll.append(1)\nll.append(2)\nll.append(3)\nprint(\"After appending 1, 2, 3:\", ll.display())\n\nll.prepend(0)\nprint(\"After prepending 0:\", ll.display())\nprint(f\"Length: {ll.length()}\")",
+              "expectedOutput": "Empty list: None\\nAfter appending 1, 2, 3: 1 -> 2 -> 3 -> None\\nAfter prepending 0: 0 -> 1 -> 2 -> 3 -> None\\nLength: 4",
+              "concepts": ["classes", "linked lists", "object-oriented programming"]
+            }
+          ]
+        },
+        "stacks": {
+          "title": "Stacks",
+          "programs": [
+            {
+              "id": "stack-array",
+              "title": "Stack using Array",
+              "description": "Implement stack data structure using array",
+              "language": "python",
+              
+              "estimatedTime": "15 min",
+              "code": "class Stack:\n    \"\"\"Stack implementation using list\"\"\"\n    def __init__(self, max_size=10):\n        self.items = []\n        self.max_size = max_size\n    \n    def is_empty(self):\n        \"\"\"Check if stack is empty\"\"\"\n        return len(self.items) == 0\n    \n    def is_full(self):\n        \"\"\"Check if stack is full\"\"\"\n        return len(self.items) >= self.max_size\n    \n    def push(self, item):\n        \"\"\"Add item to top of stack\"\"\"\n        if self.is_full():\n            print(f\"Stack overflow! Cannot push {item}\")\n            return False\n        self.items.append(item)\n        print(f\"Pushed {item}\")\n        return True\n    \n    def pop(self):\n        \"\"\"Remove and return top item\"\"\"\n        if self.is_empty():\n            print(\"Stack underflow! Cannot pop from empty stack\")\n            return None\n        item = self.items.pop()\n        print(f\"Popped {item}\")\n        return item\n    \n    def peek(self):\n        \"\"\"Return top item without removing\"\"\"\n        if self.is_empty():\n            return None\n        return self.items[-1]\n    \n    def size(self):\n        \"\"\"Return current size\"\"\"\n        return len(self.items)\n    \n    def display(self):\n        \"\"\"Display stack contents\"\"\"\n        if self.is_empty():\n            print(\"Stack is empty\")\n        else:\n            print(f\"Stack: {self.items} (top -> bottom)\")\n\n# Test the stack\nstack = Stack(5)\nprint(\"=== Stack Operations Demo ===\")\n\n# Test push operations\nstack.push(10)\nstack.push(20)\nstack.push(30)\nstack.display()\nprint(f\"Top element: {stack.peek()}\")\nprint(f\"Stack size: {stack.size()}\")\nprint()\n\n# Test pop operations\nstack.pop()\nstack.pop()\nstack.display()\nprint()\n\n# Test edge cases\nstack.pop()  # Should empty the stack\nstack.pop()  # Should show underflow\nprint()\n\n# Fill up the stack\nfor i in range(1, 7):  # Try to add 6 items to size-5 stack\n    stack.push(i * 10)",
+              "expectedOutput": "=== Stack Operations Demo ===\\nPushed 10\\nPushed 20\\nPushed 30\\nStack: [10, 20, 30] (top -> bottom)\\nTop element: 30\\nStack size: 3\\n\\nPopped 30\\nPopped 20\\nStack: [10] (top -> bottom)\\n\\nPopped 10\\nStack underflow! Cannot pop from empty stack\\n\\nPushed 10\\nPushed 20\\nPushed 30\\nPushed 40\\nPushed 50\\nStack overflow! Cannot push 60",
+              "concepts": ["stacks", "LIFO", "data structures"]
+            }
+          ]
+        }
+      }
+    },
+    "algorithms": {
+      "title": "Algorithms",
+      "description": "Master essential algorithms with practical implementations",
+      "icon": "⚙️",
+      "categories": {
+        "sorting": {
+          "title": "Sorting Algorithms",
+          "programs": [
+            {
+              "id": "bubble-sort",
+              "title": "Bubble Sort Algorithm",
+              "description": "Implement the bubble sort algorithm",
+              "language": "python",
+              
+              "estimatedTime": "15 min",
+              "code": "def bubble_sort(arr):\n    \"\"\"Bubble sort implementation with step-by-step display\"\"\"\n    n = len(arr)\n    comparisons = 0\n    swaps = 0\n    \n    print(f\"Starting Bubble Sort on: {arr}\")\n    print(\"=\" * 40)\n    \n    for i in range(n):\n        swapped = False\n        print(f\"\\nPass {i + 1}:\")\n        \n        for j in range(0, n - i - 1):\n            comparisons += 1\n            print(f\"  Comparing {arr[j]} and {arr[j + 1]}\", end=\"\")\n            \n            if arr[j] > arr[j + 1]:\n                arr[j], arr[j + 1] = arr[j + 1], arr[j]\n                swaps += 1\n                swapped = True\n                print(f\" -> Swap! Array: {arr}\")\n            else:\n                print(f\" -> No swap needed\")\n        \n        if not swapped:\n            print(f\"  No swaps in this pass - array is sorted!\")\n            break\n        \n        print(f\"  End of pass {i + 1}: {arr}\")\n    \n    print(f\"\\nFinal sorted array: {arr}\")\n    print(f\"Total comparisons: {comparisons}\")\n    print(f\"Total swaps: {swaps}\")\n    return arr\n\n# Test with a small array\ntest_array = [64, 34, 25, 12, 22]\nbubble_sort(test_array.copy())",
+              "expectedOutput": "Starting Bubble Sort on: [64, 34, 25, 12, 22]\\n========================================\\n\\nPass 1:\\n  Comparing 64 and 34 -> Swap! Array: [34, 64, 25, 12, 22]",
+              "concepts": ["sorting", "bubble sort", "algorithms", "time complexity"]
+            },
+            {
+              "id": "selection-sort",
+              "title": "Selection Sort Algorithm",
+              "description": "Implement selection sort with visualization",
+              "language": "python", 
+              
+              "estimatedTime": "15 min",
+              "code": "def selection_sort(arr):\n    \"\"\"Selection sort implementation with step-by-step display\"\"\"\n    n = len(arr)\n    \n    print(f\"Starting Selection Sort on: {arr}\")\n    print(\"=\" * 40)\n    \n    for i in range(n):\n        # Find minimum element in remaining unsorted array\n        min_idx = i\n        print(f\"\\nStep {i + 1}: Finding minimum in {arr[i:]}\")\n        \n        for j in range(i + 1, n):\n            if arr[j] < arr[min_idx]:\n                min_idx = j\n                print(f\"  New minimum found: {arr[min_idx]} at index {min_idx}\")\n        \n        # Swap the found minimum element with first element\n        if min_idx != i:\n            arr[i], arr[min_idx] = arr[min_idx], arr[i]\n            print(f\"  Swapping {arr[min_idx]} and {arr[i]}\")\n        else:\n            print(f\"  {arr[i]} is already in correct position\")\n        \n        print(f\"  Array after step {i + 1}: {arr}\")\n        print(f\"  Sorted portion: {arr[:i+1]}, Unsorted: {arr[i+1:]}\")\n    \n    print(f\"\\nFinal sorted array: {arr}\")\n    return arr\n\n# Test the function\ntest_array = [64, 25, 12, 22, 11]\nselection_sort(test_array)",
+              "expectedOutput": "Starting Selection Sort on: [64, 25, 12, 22, 11]\\n========================================\\n\\nStep 1: Finding minimum in [64, 25, 12, 22, 11]\\n  New minimum found: 25 at index 1",
+              "concepts": ["sorting", "selection sort", "algorithms"]
+            },
+            {
+              "id": "binary-search",
+              "title": "Binary Search Algorithm",
+              "description": "Implement binary search on sorted arrays",
+              "language": "python",
+              
+              "estimatedTime": "20 min",
+              "code": "def binary_search(arr, target):\n    \"\"\"Binary search implementation with step-by-step display\"\"\"\n    left, right = 0, len(arr) - 1\n    step = 1\n    \n    print(f\"Searching for {target} in sorted array: {arr}\")\n    print(\"=\" * 50)\n    \n    while left <= right:\n        mid = (left + right) // 2\n        print(f\"\\nStep {step}:\")\n        print(f\"  Left: {left}, Right: {right}, Mid: {mid}\")\n        print(f\"  Checking middle element: arr[{mid}] = {arr[mid]}\")\n        \n        if arr[mid] == target:\n            print(f\"  ✓ Found {target} at index {mid}!\")\n            return mid\n        elif arr[mid] < target:\n            print(f\"  {arr[mid]} < {target}, search right half\")\n            left = mid + 1\n        else:\n            print(f\"  {arr[mid]} > {target}, search left half\")\n            right = mid - 1\n        \n        if left <= right:\n            print(f\"  New search range: {arr[left:right+1]}\")\n        \n        step += 1\n    \n    print(f\"\\n✗ {target} not found in the array\")\n    return -1\n\n# Test with different scenarios\nsorted_array = [11, 12, 22, 25, 34, 64, 90]\n\nprint(\"=== Binary Search Demo ===\")\nprint()\n\n# Test case 1: Element exists\nresult1 = binary_search(sorted_array, 25)\nprint(f\"Result: {result1}\")\nprint()\n\n# Test case 2: Element doesn't exist\nresult2 = binary_search(sorted_array, 50)\nprint(f\"Result: {result2}\")\nprint()\n\n# Test case 3: Element at boundary\nresult3 = binary_search(sorted_array, 11)\nprint(f\"Result: {result3}\")",
+              "expectedOutput": "=== Binary Search Demo ===\\n\\nSearching for 25 in sorted array: [11, 12, 22, 25, 34, 64, 90]\\n==================================================\\n\\nStep 1:\\n  Left: 0, Right: 6, Mid: 3\\n  Checking middle element: arr[3] = 25\\n  ✓ Found 25 at index 3!\\nResult: 3",
+              "concepts": ["searching", "binary search", "divide and conquer"]
+            }
+          ]
+        },
+        "recursion": {
+          "title": "Recursion",
+          "programs": [
+            {
+              "id": "factorial",
+              "title": "Factorial using Recursion",
+              "description": "Calculate factorial using recursive approach",
+              "language": "python",
+              
+              "estimatedTime": "10 min",
+              "code": "def factorial(n, depth=0):\n    \"\"\"Calculate factorial with recursion visualization\"\"\"\n    indent = \"  \" * depth\n    print(f\"{indent}factorial({n}) called\")\n    \n    # Base case\n    if n == 0 or n == 1:\n        print(f\"{indent}Base case reached: factorial({n}) = 1\")\n        return 1\n    \n    # Recursive case\n    print(f\"{indent}Recursive case: {n} * factorial({n-1})\")\n    result = n * factorial(n - 1, depth + 1)\n    print(f\"{indent}factorial({n}) = {result}\")\n    return result\n\n# Test factorial function\nprint(\"=== Factorial Calculation ===\")\nprint()\n\nnumbers = [0, 1, 5, 6]\nfor num in numbers:\n    print(f\"Calculating factorial of {num}:\")\n    result = factorial(num)\n    print(f\"Final result: {num}! = {result}\")\n    print(\"-\" * 30)\n    print()",
+              "expectedOutput": "=== Factorial Calculation ===\\n\\nCalculating factorial of 0:\\nfactorial(0) called\\nBase case reached: factorial(0) = 1\\nFinal result: 0! = 1",
+              "concepts": ["recursion", "factorial", "base case"]
+            },
+            {
+              "id": "fibonacci",
+              "title": "Fibonacci Sequence",
+              "description": "Generate Fibonacci numbers using recursion",
+              "language": "python",
+              
+              "estimatedTime": "15 min",
+              "code": "def fibonacci(n, memo={}, depth=0):\n    \"\"\"Fibonacci with memoization and visualization\"\"\"\n    indent = \"  \" * depth\n    print(f\"{indent}fib({n}) called\")\n    \n    # Check if already computed\n    if n in memo:\n        print(f\"{indent}Found in memo: fib({n}) = {memo[n]}\")\n        return memo[n]\n    \n    # Base cases\n    if n <= 1:\n        print(f\"{indent}Base case: fib({n}) = {n}\")\n        memo[n] = n\n        return n\n    \n    # Recursive case\n    print(f\"{indent}Computing: fib({n}) = fib({n-1}) + fib({n-2})\")\n    result = fibonacci(n-1, memo, depth+1) + fibonacci(n-2, memo, depth+1)\n    memo[n] = result\n    print(f\"{indent}fib({n}) = {result}\")\n    return result\n\ndef fibonacci_sequence(count):\n    \"\"\"Generate first 'count' Fibonacci numbers\"\"\"\n    sequence = []\n    for i in range(count):\n        fib_num = fibonacci(i, {})\n        sequence.append(fib_num)\n    return sequence\n\n# Test Fibonacci\nprint(\"=== Fibonacci Calculation ===\")\nprint()\n\n# Calculate individual Fibonacci number\nprint(\"Calculating fib(6):\")\nresult = fibonacci(6)\nprint(f\"Final result: fib(6) = {result}\")\nprint()\n\n# Generate sequence\nprint(\"First 10 Fibonacci numbers:\")\nsequence = fibonacci_sequence(10)\nprint(f\"Sequence: {sequence}\")",
+              "expectedOutput": "=== Fibonacci Calculation ===\\n\\nCalculating fib(6):\\nfib(6) called\\nComputing: fib(6) = fib(5) + fib(4)",
+              "concepts": ["recursion", "fibonacci", "memoization", "dynamic programming"]
+            }
+          ]
+        }
+      }
+    },
+    "programming-basics": {
+      "title": "Programming Basics",
+      "description": "Foundation concepts for programming",
+      "icon": "💻",
+      "categories": {
+        "variables-operators": {
+          "title": "Variables & Operators",
+          "programs": [
+            {
+              "id": "basic-calculator",
+              "title": "Basic Calculator",
+              "description": "Simple calculator with basic arithmetic operations",
+              "language": "python",
+              
+              "estimatedTime": "10 min",
+              "code": "def calculator():\n    \"\"\"Simple calculator program\"\"\"\n    print(\"=== Simple Calculator ===\")\n    print(\"Available operations: +, -, *, /, %, **\")\n    print()\n    \n    # Get input from user (simulated)\n    num1 = 15\n    num2 = 4\n    \n    print(f\"First number: {num1}\")\n    print(f\"Second number: {num2}\")\n    print()\n    \n    # Perform all operations\n    print(\"Results:\")\n    print(f\"{num1} + {num2} = {num1 + num2}\")\n    print(f\"{num1} - {num2} = {num1 - num2}\")\n    print(f\"{num1} * {num2} = {num1 * num2}\")\n    print(f\"{num1} / {num2} = {num1 / num2}\")\n    print(f\"{num1} % {num2} = {num1 % num2} (remainder)\")\n    print(f\"{num1} ** {num2} = {num1 ** num2} (power)\")\n    print(f\"{num1} // {num2} = {num1 // num2} (floor division)\")\n    \n    # Comparison operations\n    print(\"\\nComparisons:\")\n    print(f\"{num1} > {num2} = {num1 > num2}\")\n    print(f\"{num1} < {num2} = {num1 < num2}\")\n    print(f\"{num1} == {num2} = {num1 == num2}\")\n    print(f\"{num1} != {num2} = {num1 != num2}\")\n\n# Run the calculator\ncalculator()",
+              "expectedOutput": "=== Simple Calculator ===\\nAvailable operations: +, -, *, /, %, **\\n\\nFirst number: 15\\nSecond number: 4\\n\\nResults:\\n15 + 4 = 19\\n15 - 4 = 11\\n15 * 4 = 60\\n15 / 4 = 3.75\\n15 % 4 = 3 (remainder)\\n15 ** 4 = 50625 (power)\\n15 // 4 = 3 (floor division)\\n\\nComparisons:\\n15 > 4 = True\\n15 < 4 = False\\n15 == 4 = False\\n15 != 4 = True",
+              "concepts": ["variables", "arithmetic operators", "comparison operators"]
+            }
+          ]
+        },
+        "control-structures": {
+          "title": "Control Structures",
+          "programs": [
+            {
+              "id": "grade-calculator",
+              "title": "Grade Calculator",
+              "description": "Calculate grades using if-else statements",
+              "language": "python",
+              
+              "estimatedTime": "12 min",
+              "code": "def calculate_grade(score):\n    \"\"\"Calculate letter grade based on score\"\"\"\n    if score >= 90:\n        return 'A'\n    elif score >= 80:\n        return 'B'\n    elif score >= 70:\n        return 'C'\n    elif score >= 60:\n        return 'D'\n    else:\n        return 'F'\n\ndef get_grade_info(score):\n    \"\"\"Get detailed grade information\"\"\"\n    grade = calculate_grade(score)\n    \n    if grade == 'A':\n        status = \"Excellent!\"\n        gpa = 4.0\n    elif grade == 'B':\n        status = \"Good job!\"\n        gpa = 3.0\n    elif grade == 'C':\n        status = \"Average\"\n        gpa = 2.0\n    elif grade == 'D':\n        status = \"Below Average\"\n        gpa = 1.0\n    else:\n        status = \"Needs Improvement\"\n        gpa = 0.0\n    \n    return grade, status, gpa\n\n# Test with different scores\nprint(\"=== Grade Calculator ===\")\nprint()\n\ntest_scores = [95, 87, 76, 65, 45, 100, 0]\n\nfor score in test_scores:\n    grade, status, gpa = get_grade_info(score)\n    print(f\"Score: {score:3d} | Grade: {grade} | Status: {status:20s} | GPA: {gpa}\")\n\nprint()\nprint(\"Grade Scale:\")\nprint(\"A: 90-100 (Excellent)\")\nprint(\"B: 80-89  (Good)\")\nprint(\"C: 70-79  (Average)\")\nprint(\"D: 60-69  (Below Average)\")\nprint(\"F: 0-59   (Failing)\")",
+              "expectedOutput": "=== Grade Calculator ===\\n\\nScore:  95 | Grade: A | Status: Excellent!           | GPA: 4.0\\nScore:  87 | Grade: B | Status: Good job!           | GPA: 3.0\\nScore:  76 | Grade: C | Status: Average             | GPA: 2.0\\nScore:  65 | Grade: D | Status: Below Average       | GPA: 1.0\\nScore:  45 | Grade: F | Status: Needs Improvement   | GPA: 0.0\\nScore: 100 | Grade: A | Status: Excellent!           | GPA: 4.0\\nScore:   0 | Grade: F | Status: Needs Improvement   | GPA: 0.0",
+              "concepts": ["if-else", "conditional statements", "functions"]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

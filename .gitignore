@@ -13,8 +13,11 @@ yarn-error.log*
 .env.production.local
 
 # Production builds
+# IMPORTANT: frontend/dist is NOT ignored - needed for Render deployment
 dist/
 build/
+!frontend/dist/
+backend/public/
 
 # Editor directories and files
 .vscode/*

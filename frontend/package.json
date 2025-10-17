@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "cross-env NODE_OPTIONS='--max-old-space-size=1024' tsc && cross-env NODE_OPTIONS='--max-old-space-size=1024' vite build",
-    "build:prod": "cross-env NODE_OPTIONS='--max-old-space-size=512' tsc -p tsconfig.prod.json && cross-env NODE_OPTIONS='--max-old-space-size=512' vite build --mode production",
+    "build:prod": "cross-env NODE_OPTIONS='--max-old-space-size=384' tsc -p tsconfig.prod.json && cross-env NODE_OPTIONS='--max-old-space-size=384' vite build --mode production",
+    "build:local": "cross-env NODE_OPTIONS='--max-old-space-size=1024' tsc -p tsconfig.prod.json && cross-env NODE_OPTIONS='--max-old-space-size=1024' vite build --mode production",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",

@@ -1,0 +1,40 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="url(#gradient)"/>
+  
+  <!-- Book icon -->
+  <g transform="translate(128, 128)">
+    <!-- Book cover -->
+    <rect x="32" y="48" width="192" height="224" rx="8" fill="#ffffff" opacity="0.9"/>
+    <rect x="40" y="56" width="176" height="208" rx="4" fill="#f8fafc"/>
+    
+    <!-- Book spine -->
+    <rect x="32" y="48" width="20" height="224" rx="8" fill="#e2e8f0"/>
+    
+    <!-- Pages -->
+    <line x1="64" y1="88" x2="192" y2="88" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="64" y1="112" x2="184" y2="112" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="64" y1="136" x2="192" y2="136" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="64" y1="160" x2="176" y2="160" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="64" y1="184" x2="192" y2="184" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="64" y1="208" x2="168" y2="208" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Bookmark -->
+    <path d="M192 48 L224 48 L224 128 L208 112 L192 128 Z" fill="#3b82f6"/>
+    
+    <!-- Graduation cap -->
+    <g transform="translate(48, 184)">
+      <ellipse cx="64" cy="48" rx="52" ry="16" fill="#3b82f6"/>
+      <rect x="12" y="32" width="104" height="32" rx="16" fill="#1d4ed8"/>
+      <rect x="112" y="40" width="8" height="40" rx="4" fill="#1d4ed8"/>
+      <circle cx="116" cy="80" r="6" fill="#fbbf24"/>
+    </g>
+  </g>
+  
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
