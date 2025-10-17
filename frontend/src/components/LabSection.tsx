@@ -3,7 +3,7 @@ import { Code, Terminal, ArrowLeft, Zap } from 'lucide-react';
 import { codeExecutionService } from '../services/codeExecution';
 import NeoGlassEditorCodeMirror from './NeoGlassEditorCodeMirror';
 import PracticeEditor from './PracticeEditor';
-import { getApiUrl } from '../config/api';
+import { supabase } from '../config/supabase';
 
 // Define types
 interface LabSubject {
@@ -48,16 +48,20 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
     const loadSubjects = async () => {
       try {
         setLoadingSubjects(true);
-        const apiUrl = getApiUrl();
-        const response = await fetch(`${apiUrl}/api/lab/subjects`);
         
-        if (!response.ok) {
+        // Query Supabase directly
+        const { data, error } = await supabase
+          .from('lab_subjects')
+          .select('*')
+          .order('name', { ascending: true });
+        
+        if (error) {
+          console.error('Supabase error:', error);
           throw new Error('Failed to fetch subjects');
         }
 
-        const data = await response.json();
-        if (data.success) {
-          setLabSubjects(data.data);
+        if (data) {
+          setLabSubjects(data);
         }
       } catch (error) {
         console.error('Failed to load subjects:', error);
@@ -93,16 +97,21 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
   const loadPrograms = async (subjectCode: string) => {
     try {
       setLoading(true);
-      const apiUrl = getApiUrl();
-      const response = await fetch(`${apiUrl}/api/lab/programs/subject/${subjectCode}`);
       
-      if (!response.ok) {
+      // Query Supabase directly
+      const { data, error } = await supabase
+        .from('lab_programs')
+        .select('*')
+        .eq('subject_code', subjectCode)
+        .order('program_name', { ascending: true });
+      
+      if (error) {
+        console.error('Supabase error:', error);
         throw new Error('Failed to fetch programs');
       }
 
-      const data = await response.json();
-      if (data.success) {
-        setPrograms(data.data);
+      if (data) {
+        setPrograms(data);
       }
     } catch (error) {
       console.error('Failed to load programs:', error);

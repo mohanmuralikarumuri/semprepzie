@@ -3,7 +3,7 @@ import { Code, ArrowLeft, Zap } from 'lucide-react';
 import { codeExecutionService } from '../services/codeExecution';
 import NeoGlassEditorCodeMirror from './NeoGlassEditorCodeMirror';
 import PracticeEditor from './PracticeEditor';
-import { getApiUrl } from '../config/api';
+import { supabase } from '../config/supabase';
 
 // Define types
 interface MinCodeSubject {
@@ -48,16 +48,20 @@ const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEdi
     const loadSubjects = async () => {
       try {
         setLoadingSubjects(true);
-        const apiUrl = getApiUrl();
-        const response = await fetch(`${apiUrl}/api/mincode/subjects`);
         
-        if (!response.ok) {
+        // Query Supabase directly
+        const { data, error } = await supabase
+          .from('mincode_subjects')
+          .select('*')
+          .order('name', { ascending: true });
+        
+        if (error) {
+          console.error('Supabase error:', error);
           throw new Error('Failed to fetch subjects');
         }
 
-        const data = await response.json();
-        if (data.success) {
-          setMinCodeSubjects(data.data);
+        if (data) {
+          setMinCodeSubjects(data);
         }
       } catch (error) {
         console.error('Failed to load min code subjects:', error);
@@ -93,16 +97,21 @@ const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEdi
   const loadPrograms = async (subjectCode: string) => {
     try {
       setLoading(true);
-      const apiUrl = getApiUrl();
-      const response = await fetch(`${apiUrl}/api/mincode/programs/subject/${subjectCode}`);
       
-      if (!response.ok) {
+      // Query Supabase directly
+      const { data, error } = await supabase
+        .from('mincode_programs')
+        .select('*')
+        .eq('subject_code', subjectCode)
+        .order('program_name', { ascending: true });
+      
+      if (error) {
+        console.error('Supabase error:', error);
         throw new Error('Failed to fetch programs');
       }
 
-      const data = await response.json();
-      if (data.success) {
-        setPrograms(data.data);
+      if (data) {
+        setPrograms(data);
       }
     } catch (error) {
       console.error('Failed to load min code programs:', error);
