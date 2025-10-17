@@ -157,7 +157,15 @@ class Server {
         }
       }));
       
-      // Catch-all handler: send back index.html for SPA routes
+      // 404 handler for API routes (must come BEFORE catch-all)
+      this.app.use('/api/*', (req, res) => {
+        res.status(404).json({
+          success: false,
+          error: 'API endpoint not found'
+        });
+      });
+      
+      // Catch-all handler: send back index.html for SPA routes (must be LAST)
       this.app.get('*', (req, res) => {
         // Remove CSP headers before sending HTML
         res.removeHeader('Content-Security-Policy');
@@ -168,14 +176,6 @@ class Server {
         res.sendFile('index.html', { root: 'public' });
       });
     }
-
-    // 404 handler for API routes
-    this.app.use('/api/*', (req, res) => {
-      res.status(404).json({
-        success: false,
-        error: 'API endpoint not found'
-      });
-    });
   }
 
   private initializeErrorHandling(): void {
