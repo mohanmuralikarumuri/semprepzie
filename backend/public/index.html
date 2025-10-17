@@ -5,6 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
+    <!-- Force browser to reload - Cache Busting -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
     <!-- Disable CSP completely -->
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline'; font-src * data:; img-src * data: blob:; media-src * data: blob:; object-src *; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline';">
     
@@ -44,12 +49,15 @@
     <meta property="twitter:title" content="Semprepzie - Educational Platform">
     <meta property="twitter:description" content="Modern educational document management platform for AITS Rajampet students">
     <meta property="twitter:image" content="/og-image.png">
-    <script type="module" crossorigin src="/assets/index-e86b922e.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-b69f2a9f.js">
-    <link rel="modulepreload" crossorigin href="/assets/router-4d06868b.js">
-    <link rel="modulepreload" crossorigin href="/assets/firebase-3aecaee0.js">
-    <link rel="modulepreload" crossorigin href="/assets/ui-fc292599.js">
-    <link rel="stylesheet" href="/assets/index-8bd8d133.css">
+    
+    <!-- Pyodide for Python execution -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script type="module" crossorigin src="/assets/index-09a03a63.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-9d7f3a89.js">
+    <link rel="modulepreload" crossorigin href="/assets/router-4cbff3e7.js">
+    <link rel="modulepreload" crossorigin href="/assets/firebase-7d03940f.js">
+    <link rel="modulepreload" crossorigin href="/assets/ui-b62a8f42.js">
+    <link rel="stylesheet" href="/assets/index-25a1610a.css">
   </head>
   <body>
     <div id="root"></div>
