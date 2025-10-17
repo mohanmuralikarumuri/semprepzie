@@ -3,6 +3,7 @@ import { Code, Terminal, ArrowLeft, Zap } from 'lucide-react';
 import { codeExecutionService } from '../services/codeExecution';
 import NeoGlassEditorCodeMirror from './NeoGlassEditorCodeMirror';
 import PracticeEditor from './PracticeEditor';
+import { getApiUrl } from '../config/api';
 
 // Define types
 interface LabSubject {
@@ -47,7 +48,7 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
     const loadSubjects = async () => {
       try {
         setLoadingSubjects(true);
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const apiUrl = getApiUrl();
         const response = await fetch(`${apiUrl}/api/lab/subjects`);
         
         if (!response.ok) {
@@ -92,7 +93,7 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
   const loadPrograms = async (subjectCode: string) => {
     try {
       setLoading(true);
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/api/lab/programs/subject/${subjectCode}`);
       
       if (!response.ok) {

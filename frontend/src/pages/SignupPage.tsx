@@ -6,6 +6,7 @@ import Input from '../components/ui/Input';
 import { validateCollegeEmailShared, extractStudentNumberShared } from '../utils';
 import toast from 'react-hot-toast';
 import { AlertCircle, X } from 'lucide-react';
+import { getApiUrl } from '../config/api';
 
 const SignupPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -104,7 +105,7 @@ const SignupPage: React.FC = () => {
 
     setReportLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/api/contact`, {
         method: 'POST',
         headers: {

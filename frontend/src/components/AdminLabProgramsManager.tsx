@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, X, BookOpen, Code, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getApiUrl } from '../config/api';
 
 interface LabSubject {
   id: string;
@@ -54,7 +55,7 @@ const AdminLabProgramsManager: React.FC = () => {
     difficulty: 'medium' as const
   });
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const apiUrl = getApiUrl();
 
   // Load subjects on mount
   useEffect(() => {
