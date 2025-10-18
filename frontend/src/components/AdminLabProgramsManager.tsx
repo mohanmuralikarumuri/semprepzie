@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, X, BookOpen, Code, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getApiUrl } from '../config/api';
+import { supabase } from '../config/supabase';
 
 interface LabSubject {
   id: string;
@@ -23,7 +23,7 @@ interface LabProgram {
 }
 
 const AdminLabProgramsManager: React.FC = () => {
-  const { user } = useAuth();
+  useAuth();
   const [subjects, setSubjects] = useState<LabSubject[]>([]);
   const [programs, setPrograms] = useState<LabProgram[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
@@ -55,7 +55,8 @@ const AdminLabProgramsManager: React.FC = () => {
     difficulty: 'medium' as const
   });
 
-  const apiUrl = getApiUrl();
+  // Using Supabase client directly for persistence
+  // const apiUrl = getApiUrl();
 
   // Load subjects on mount
   useEffect(() => {
@@ -72,11 +73,13 @@ const AdminLabProgramsManager: React.FC = () => {
   const loadSubjects = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiUrl}/api/lab/subjects`);
-      const data = await response.json();
-      if (data.success) {
-        setSubjects(data.data);
-      }
+      const { data, error } = await supabase
+        .from('lab_subjects')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setSubjects(data || []);
     } catch (err) {
       setError('Failed to load subjects');
       console.error(err);
@@ -88,11 +91,14 @@ const AdminLabProgramsManager: React.FC = () => {
   const loadPrograms = async (subjectCode: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiUrl}/api/lab/programs/subject/${subjectCode}`);
-      const data = await response.json();
-      if (data.success) {
-        setPrograms(data.data);
-      }
+      const { data, error } = await supabase
+        .from('lab_programs')
+        .select('*')
+        .eq('subject_code', subjectCode)
+        .order('program_name', { ascending: true });
+
+      if (error) throw error;
+      setPrograms(data || []);
     } catch (err) {
       setError('Failed to load programs');
       console.error(err);
@@ -103,31 +109,21 @@ const AdminLabProgramsManager: React.FC = () => {
 
   const handleCreateSubject = async () => {
     try {
-      if (!user) {
-        setError('Authentication required');
+      const { error } = await supabase
+        .from('lab_subjects')
+        .insert([subjectForm])
+        .select()
+        .single();
+
+      if (error) {
+        setError(error.message || 'Failed to create subject');
         return;
       }
 
-      const token = await user.getIdToken();
-
-      const response = await fetch(`${apiUrl}/api/lab/subjects`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(subjectForm)
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        await loadSubjects();
-        setShowSubjectForm(false);
-        resetSubjectForm();
-        setError(null);
-      } else {
-        setError(data.message || 'Failed to create subject');
-      }
+      await loadSubjects();
+      setShowSubjectForm(false);
+      resetSubjectForm();
+      setError(null);
     } catch (err) {
       setError('Failed to create subject');
       console.error(err);
@@ -140,31 +136,22 @@ const AdminLabProgramsManager: React.FC = () => {
     }
 
     try {
-      if (!user) {
-        setError('Authentication required');
+      const { error } = await supabase
+        .from('lab_subjects')
+        .delete()
+        .eq('code', code);
+
+      if (error) {
+        setError(error.message || 'Failed to delete subject');
         return;
       }
 
-      const token = await user.getIdToken();
-
-      const response = await fetch(`${apiUrl}/api/lab/subjects/${code}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        await loadSubjects();
-        if (selectedSubject === code) {
-          setSelectedSubject(null);
-          setPrograms([]);
-        }
-        setError(null);
-      } else {
-        setError(data.message || 'Failed to delete subject');
+      await loadSubjects();
+      if (selectedSubject === code) {
+        setSelectedSubject(null);
+        setPrograms([]);
       }
+      setError(null);
     } catch (err) {
       setError('Failed to delete subject');
       console.error(err);
@@ -173,36 +160,28 @@ const AdminLabProgramsManager: React.FC = () => {
 
   const handleCreateProgram = async () => {
     try {
-      if (!user) {
-        setError('Authentication required');
+      const payload = {
+        ...(programForm as any),
+        subject_code: selectedSubject
+      };
+
+      const { error } = await supabase
+        .from('lab_programs')
+        .insert([payload])
+        .select()
+        .single();
+
+      if (error) {
+        setError(error.message || 'Failed to create program');
         return;
       }
 
-      const token = await user.getIdToken();
-
-      const response = await fetch(`${apiUrl}/api/lab/programs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...programForm,
-          subject_code: selectedSubject
-        })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        if (selectedSubject) {
-          await loadPrograms(selectedSubject);
-        }
-        setShowProgramForm(false);
-        resetProgramForm();
-        setError(null);
-      } else {
-        setError(data.message || 'Failed to create program');
+      if (selectedSubject) {
+        await loadPrograms(selectedSubject);
       }
+      setShowProgramForm(false);
+      resetProgramForm();
+      setError(null);
     } catch (err) {
       setError('Failed to create program');
       console.error(err);
@@ -215,29 +194,20 @@ const AdminLabProgramsManager: React.FC = () => {
     }
 
     try {
-      if (!user) {
-        setError('Authentication required');
+      const { error } = await supabase
+        .from('lab_programs')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        setError(error.message || 'Failed to delete program');
         return;
       }
 
-      const token = await user.getIdToken();
-
-      const response = await fetch(`${apiUrl}/api/lab/programs/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        if (selectedSubject) {
-          await loadPrograms(selectedSubject);
-        }
-        setError(null);
-      } else {
-        setError(data.message || 'Failed to delete program');
+      if (selectedSubject) {
+        await loadPrograms(selectedSubject);
       }
+      setError(null);
     } catch (err) {
       setError('Failed to delete program');
       console.error(err);

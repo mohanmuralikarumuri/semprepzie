@@ -187,11 +187,18 @@ const DocumentModifier: React.FC<DocumentModifierProps> = ({ isDarkTheme }) => {
         throw new Error(uploadResult.error || 'Upload failed');
       }
 
-      // Save metadata to database
+      if (!uploadResult.url) {
+        // public URL must be present
+        throw new Error('Failed to obtain public URL for uploaded file');
+      }
+
+      // Save metadata to database — store public URL so documents are directly accessible
+      const publicUrl = uploadResult.url;
+
       const metadata = {
         title: documentTitle,
         unit_id: selectedUnit,
-        file_path: uploadResult.path,
+        file_path: publicUrl, // store public URL instead of storage path
         file_size: selectedFile.size
       };
 
