@@ -3,6 +3,7 @@ import { Subject, DocumentItem } from '../utils/documentUtils';
 import { useSubjectsData } from '../hooks/useSubjectsData';
 import DocumentViewer from './DocumentViewer';
 import LatestUpdates from './LatestUpdates';
+import SemprepzieLoader from './SemprepzieLoader';
 
 interface TheorySectionProps {
   onPDFViewingChange?: (isViewingPDF: boolean) => void;
@@ -68,10 +69,7 @@ const TheorySection: React.FC<TheorySectionProps> = ({ onPDFViewingChange, darkM
       <div className="container">
         {loading ? (
           // Loading State
-          <div className="text-center py-12">
-            <div className="spinner w-12 h-12 mx-auto mb-4"></div>
-            <p className="text-secondary-600">Loading subjects...</p>
-          </div>
+          <SemprepzieLoader />
         ) : error ? (
           // Error State
           <div className="text-center py-12">

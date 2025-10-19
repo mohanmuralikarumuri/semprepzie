@@ -8,7 +8,7 @@ interface PracticeEditorProps {
 }
 
 // Code snippets for different languages
-const CODE_SNIPPETS: Record<'c' | 'cpp' | 'python' | 'java', string> = {
+const CODE_SNIPPETS: Record<'c' | 'cpp' | 'python' | 'java' | 'html' | 'css' | 'javascript' | 'react', string> = {
   c: `#include <stdio.h>
 
 int main() {
@@ -28,11 +28,49 @@ print("Hello, World!")`,
     public static void main(String[] args) {
         System.out.println("Hello, World!");
     }
-}`
+}`,
+  html: `<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello World</title>
+</head>
+<body>
+    <h1>Hello, World!</h1>
+</body>
+</html>`,
+  css: `body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+h1 {
+    color: #0066cc;
+}`,
+  javascript: `// JavaScript program
+console.log("Hello, World!");
+
+function greet(name) {
+    return \`Hello, \${name}!\`;
+}
+
+console.log(greet("World"));`,
+  react: `import React from 'react';
+
+function App() {
+  return (
+    <div>
+      <h1>Hello, World!</h1>
+      <p>Welcome to React!</p>
+    </div>
+  );
+}
+
+export default App;`
 };
 
 const PracticeEditor: React.FC<PracticeEditorProps> = ({ darkMode = false, onBack }) => {
-  const [language, setLanguage] = useState<'c' | 'cpp' | 'python' | 'java'>('python');
+  const [language, setLanguage] = useState<'c' | 'cpp' | 'python' | 'java' | 'html' | 'css' | 'javascript' | 'react'>('python');
   const [code, setCode] = useState(CODE_SNIPPETS.python);
   const [output, setOutput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);

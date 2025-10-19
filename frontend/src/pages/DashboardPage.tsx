@@ -235,10 +235,10 @@ const DashboardPage: React.FC = () => {
         return <TheorySection onPDFViewingChange={handlePDFViewingChange} darkMode={isDarkTheme} />;
 
       case 'lab':
-        return <LabSection darkMode={isDarkTheme} onEditorStateChange={setIsInEditor} />;
+        return <LabSection darkMode={isDarkTheme} onEditorStateChange={setIsInEditor} source="dashboard" />;
 
       case 'mincode':
-        return <MinCodeSection darkMode={isDarkTheme} onEditorStateChange={setIsInEditor} />;
+        return <MinCodeSection darkMode={isDarkTheme} onEditorStateChange={setIsInEditor} source="dashboard" />;
 
       case 'contact':
         return (

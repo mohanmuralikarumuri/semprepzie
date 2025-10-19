@@ -70,17 +70,26 @@
   align-items: center;
   height: var(--navbar-height);
   position: relative;
+  gap: var(--spacing-sm);
+}
+
+.nav-logo {
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .nav-logo h1 {
   color: var(--primary-color);
-  font-size: var(--font-2xl);
+  font-size: clamp(1.25rem, 4vw, var(--font-2xl));
   font-weight: bold;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
   transition: all 0.3s ease;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-logo h1:hover {
@@ -145,46 +154,35 @@
 .nav-controls {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
-.theme-toggle button {
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-color);
-  border-radius: 50%;
-  width: 2.5rem;
-  height: 2.5rem;
-  cursor: pointer;
-  font-size: var(--font-base);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.theme-toggle button:hover {
-  transform: rotate(180deg) scale(1.1);
-}
-
+.admin-btn, .cache-btn, .logout-btn,
+.theme-toggle button,
 .cache-toggle button {
   background: var(--bg-secondary);
   border: 2px solid var(--border-color);
   border-radius: 50%;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: clamp(2rem, 5vw, 2.5rem);
+  height: clamp(2rem, 5vw, 2.5rem);
   cursor: pointer;
-  font-size: var(--font-base);
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
 }
 
-.cache-toggle button:hover {
+.theme-toggle button:hover,
+.cache-btn:hover,
+.admin-btn:hover,
+.logout-btn:hover {
+  transform: scale(1.1);
   background: var(--primary-color);
   color: white;
   border-color: var(--primary-color);
-  transform: scale(1.1);
 }
 
 .mobile-menu-toggle {
@@ -940,6 +938,29 @@
     display: flex;
   }
   
+  .nav-container {
+    padding: 0 var(--spacing-sm);
+    height: 60px;
+    gap: var(--spacing-xs);
+  }
+  
+  .nav-logo h1 {
+    font-size: clamp(1rem, 5vw, 1.25rem);
+    gap: 0.25rem;
+  }
+  
+  .nav-controls {
+    gap: 0.375rem;
+  }
+  
+  .admin-btn, .cache-btn, .logout-btn,
+  .theme-toggle button,
+  .cache-toggle button {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+  }
+  
   .nav-menu {
     position: fixed;
     top: var(--navbar-height);
@@ -954,6 +975,7 @@
     transition: left 0.3s ease;
     box-shadow: var(--shadow-lg);
     backdrop-filter: blur(20px);
+    overflow-y: auto;
   }
   
   .nav-menu.active {
@@ -972,15 +994,6 @@
     border-radius: 12px;
     background: rgba(99, 102, 241, 0.05);
     border: 1px solid var(--border-color);
-  }
-  
-  .nav-container {
-    padding: 0 var(--spacing-md);
-    height: 60px;
-  }
-  
-  .nav-logo h1 {
-    font-size: var(--font-lg);
   }
   
   .main-site {

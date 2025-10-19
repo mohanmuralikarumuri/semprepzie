@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useAuth } from '../contexts/AuthContext';
+import SemprepzieLoader from './SemprepzieLoader';
 
 interface AdminRouteProps {
   children: ReactNode;
@@ -14,10 +15,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="spinner w-8 h-8 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying admin access...</p>
-        </div>
+        <SemprepzieLoader />
       </div>
     );
   }

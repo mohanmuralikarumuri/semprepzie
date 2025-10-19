@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLatestUpdates, LatestUpdate } from '../hooks/useLatestUpdates';
 import { Clock, FileText, ExternalLink, RefreshCw } from 'lucide-react';
+import SemprepzieLoader from './SemprepzieLoader';
 
 interface LatestUpdatesProps {
   limit?: number;
@@ -71,10 +72,7 @@ const LatestUpdates: React.FC<LatestUpdatesProps> = ({
             <Clock className="w-6 h-6 inline-block mr-2" />
             Latest Updates
           </h2>
-          <div className="text-center py-8">
-            <div className="spinner w-8 h-8 mx-auto mb-4"></div>
-            <p className={`${darkMode ? 'text-gray-300' : 'text-secondary-600'}`}>Loading latest updates...</p>
-          </div>
+          <SemprepzieLoader />
         </div>
       </div>
     );

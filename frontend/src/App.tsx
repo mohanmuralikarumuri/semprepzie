@@ -16,21 +16,18 @@ import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 import MigrationPage from './pages/MigrationPage'; // Temporary - remove after migration
 import AdminDashboardNew from './pages/AdminDashboardNew';
+import CodeExecutionPage from './pages/CodeExecutionPage';
 
 // Import components
 import AdminRoute from './components/AdminRoute';
 import InstallPWA from './components/InstallPWA';
 import OfflineIndicator from './components/OfflineIndicator';
 import LabSection from './components/LabSection';
+import SemprepzieLoader from './components/SemprepzieLoader';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
-  <div className="min-h-screen flex items-center justify-center bg-secondary-50">
-    <div className="text-center">
-      <div className="spinner w-12 h-12 mx-auto mb-4"></div>
-      <p className="text-secondary-600">Loading...</p>
-    </div>
-  </div>
+  <SemprepzieLoader />
 );
 
 // Protected route component
@@ -157,6 +154,22 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <LabSection />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lab/:subjectId/program/:programId/execute"
+          element={
+            <ProtectedRoute>
+              <CodeExecutionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mincode/:subjectId/program/:programId/execute"
+          element={
+            <ProtectedRoute>
+              <CodeExecutionPage />
             </ProtectedRoute>
           }
         />

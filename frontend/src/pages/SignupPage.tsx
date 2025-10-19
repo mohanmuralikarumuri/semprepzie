@@ -6,7 +6,6 @@ import Input from '../components/ui/Input';
 import { validateCollegeEmailShared, extractStudentNumberShared } from '../utils';
 import toast from 'react-hot-toast';
 import { AlertCircle, X } from 'lucide-react';
-import { getApiUrl } from '../config/api';
 
 const SignupPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -105,8 +104,11 @@ const SignupPage: React.FC = () => {
 
     setReportLoading(true);
     try {
-      const apiUrl = getApiUrl();
-      const response = await fetch(`${apiUrl}/api/contact`, {
+      const apiUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001' 
+        : window.location.origin;
+
+      const response = await fetch(`${apiUrl}/api/contact/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,18 +117,18 @@ const SignupPage: React.FC = () => {
           name: reportForm.name,
           email: reportForm.email,
           subject: 'Signup Issue Report',
-          message: reportForm.issue
+          message: `Signup Issue Report:\n\n${reportForm.issue}`
         }),
       });
 
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         toast.success('Issue reported successfully! We will get back to you soon.');
         setShowReportModal(false);
         setReportForm({ name: '', email: '', issue: '' });
       } else {
-        toast.error(data.message || 'Failed to send report');
+        toast.error(data.error || data.message || 'Failed to send report');
       }
     } catch (error) {
       console.error('Failed to report issue:', error);
@@ -239,7 +241,13 @@ const SignupPage: React.FC = () => {
         <div className="text-center">
           <button
             type="button"
-            onClick={() => setShowReportModal(true)}
+            onClick={() => {
+              // Auto-fill email from signup form if user has typed it
+              if (formData.email) {
+                setReportForm({ ...reportForm, email: formData.email });
+              }
+              setShowReportModal(true);
+            }}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
           >
             <AlertCircle className="w-4 h-4" />

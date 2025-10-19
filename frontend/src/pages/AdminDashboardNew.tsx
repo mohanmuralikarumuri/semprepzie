@@ -3,8 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Code, Minimize2, Menu, X, LogOut, ArrowLeft } from 'lucide-react';
 import DocumentModifier from '../components/admin/DocumentModifier';
-import LabProgramsModifier from '../components/admin/LabProgramsModifier';
-import MinCodeModifier from '../components/admin/MinCodeModifier';
+import AdminLabProgramManager from '../components/AdminLabProgramManager';
+import AdminMinCodeProgramManager from '../components/AdminMinCodeProgramManager';
 
 type AdminSection = 'documents' | 'lab-programs' | 'min-code';
 
@@ -201,8 +201,8 @@ const AdminDashboardNew: React.FC = () => {
         <main className={`flex-1 overflow-y-auto ${isDarkTheme ? 'bg-gray-900' : 'bg-gray-50'}`}>
           <div className="p-6">
             {activeSection === 'documents' && <DocumentModifier isDarkTheme={isDarkTheme} />}
-            {activeSection === 'lab-programs' && <LabProgramsModifier isDarkTheme={isDarkTheme} />}
-            {activeSection === 'min-code' && <MinCodeModifier isDarkTheme={isDarkTheme} />}
+            {activeSection === 'lab-programs' && <AdminLabProgramManager />}
+            {activeSection === 'min-code' && <AdminMinCodeProgramManager />}
           </div>
         </main>
       </div>

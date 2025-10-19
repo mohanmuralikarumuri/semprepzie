@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Play, Copy, Save, RotateCcw, Check, ArrowLeft, Sun, Moon, Type } from 'lucide-react';
 import jsPDF from 'jspdf';
 import CodeEditor from './CodeEditor';
+import MultiPaneEditor from './MultiPaneEditor';
+import HtmlCssJsRunner from './HtmlCssJsRunner';
+import ReactRunner from './ReactRunner';
+import { getExecutionEnvironment } from '../services/programExecution.service';
 
 interface NeoGlassEditorCodeMirrorProps {
   value: string;
   onChange: (value: string) => void;
-  language: 'c' | 'cpp' | 'python' | 'java';
+  language: 'c' | 'cpp' | 'python' | 'java' | 'html' | 'css' | 'javascript' | 'react';
   darkMode?: boolean;
   onRun: (code: string, input: string) => Promise<void>;
   isExecuting?: boolean;
@@ -14,10 +18,15 @@ interface NeoGlassEditorCodeMirrorProps {
   onBack?: () => void;
   title?: string;
   originalCode?: string; // Template/starting code
+  // Multi-pane editor props for HTML/CSS/JS
+  htmlCode?: string;
+  cssCode?: string;
+  onHtmlChange?: (value: string) => void;
+  onCssChange?: (value: string) => void;
   // Practice mode props
   showLanguageSelector?: boolean;
-  onLanguageChange?: (language: 'c' | 'cpp' | 'python' | 'java') => void;
-  availableLanguages?: ('c' | 'cpp' | 'python' | 'java')[];
+  onLanguageChange?: (language: 'c' | 'cpp' | 'python' | 'java' | 'html' | 'css' | 'javascript' | 'react') => void;
+  availableLanguages?: ('c' | 'cpp' | 'python' | 'java' | 'html' | 'css' | 'javascript' | 'react')[];
 }
 
 const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
@@ -31,15 +40,90 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
   onBack,
   title = 'Code Editor',
   originalCode = '', // Default to empty if not provided
+  htmlCode = '',
+  cssCode = '',
+  onHtmlChange,
+  onCssChange,
   showLanguageSelector = false,
   onLanguageChange,
-  availableLanguages = ['c', 'cpp', 'python', 'java']
+  availableLanguages = ['c', 'cpp', 'python', 'java', 'html', 'css', 'javascript', 'react']
 }) => {
   const [input, setInput] = useState('');
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
   const [localDarkMode, setLocalDarkMode] = useState(darkMode);
   const [fontSize, setFontSize] = useState(14);
+  const [showExecutionModal, setShowExecutionModal] = useState(false);
+
+  // Default templates for web languages
+  const defaultHtmlTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Page</title>
+</head>
+<body>
+    <h1>Hello World!</h1>
+    <p>Edit the code to see changes.</p>
+</body>
+</html>`;
+
+  const defaultCssTemplate = `body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+h1 {
+    text-align: center;
+}`;
+
+  const defaultJsTemplate = `console.log('JavaScript is running!');
+
+// Add your JavaScript code here
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded successfully!');
+});`;
+
+  // Determine if this is a web program (HTML/CSS/JS) - only check language, not props
+  // htmlCode/cssCode props might be undefined for backend languages from database
+  const isWebProgram = ['html', 'css', 'javascript', 'js', 'web'].includes(language.toLowerCase());
+  
+  // Determine if this is a React program
+  const isReactProgram = ['react', 'jsx'].includes(language.toLowerCase());
+  
+  // Check execution environment
+  const executionEnvironment = getExecutionEnvironment(language);
+  const canExecuteInFrontend = ['client-html', 'client-react'].includes(executionEnvironment);
+
+  // Local state for HTML/CSS - only use templates if it's a web program
+  const [localHtmlCode, setLocalHtmlCode] = useState(
+    isWebProgram ? (htmlCode || defaultHtmlTemplate) : (htmlCode || '')
+  );
+  const [localCssCode, setLocalCssCode] = useState(
+    isWebProgram ? (cssCode || defaultCssTemplate) : (cssCode || '')
+  );
+
+  // Update local state when props change
+  useEffect(() => {
+    if (isWebProgram) {
+      setLocalHtmlCode(htmlCode || defaultHtmlTemplate);
+      setLocalCssCode(cssCode || defaultCssTemplate);
+    } else {
+      setLocalHtmlCode(htmlCode || '');
+      setLocalCssCode(cssCode || '');
+    }
+  }, [htmlCode, cssCode, isWebProgram]);
+
+  // Use default JS template for web programs if empty - but NOT for backend languages
+  useEffect(() => {
+    if (isWebProgram && (!value || value.trim() === '')) {
+      onChange(defaultJsTemplate);
+    }
+  }, [isWebProgram]);
 
   // Load saved code from localStorage on component mount
   useEffect(() => {
@@ -223,7 +307,13 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
   };
 
   const handleRun = async () => {
-    await onRun(value, input);
+    // If it's a web program (HTML/CSS/JS) or React, show modal execution
+    if (canExecuteInFrontend) {
+      setShowExecutionModal(true);
+    } else {
+      // Backend execution for Python/Java/C/C++
+      await onRun(value, input);
+    }
   };
 
   const getLanguageLabel = () => {
@@ -280,9 +370,10 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
               </button>
             )}
             
-            <div className={`flex-1 mx-4 text-center ${localDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent truncate">
-                {title}
+            <div className={`flex-1 mx-4 text-center min-w-0 ${localDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent truncate px-2" title={title}>
+                <span className="sm:hidden">{title.length > 15 ? title.substring(0, 15) + '...' : title}</span>
+                <span className="hidden sm:inline">{title}</span>
               </h1>
             </div>
 
@@ -339,12 +430,12 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
             )}
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+            <div className="flex items-center gap-1 sm:gap-2 justify-end overflow-x-auto">
               {/* Run Button - Animated */}
               <button
                 onClick={handleRun}
                 disabled={isExecuting}
-                className={`flex items-center gap-1.5 px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 shrink-0 ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-5 py-1.5 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 shrink-0 ${
                   isExecuting
                     ? 'bg-gradient-to-r from-yellow-500 to-orange-500 animate-pulse cursor-not-allowed'
                     : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
@@ -367,7 +458,7 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
                 }`}
                 title="Copy Code"
               >
-                {copied ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                {copied ? <Check className="w-3 h-3 sm:w-4 sm:h-4" /> : <Copy className="w-3 h-3 sm:w-4 sm:h-4" />}
               </button>
 
               {/* Save Button */}
@@ -382,7 +473,7 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
                 }`}
                 title="Save Code"
               >
-                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Save className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
 
               {/* Clear Button */}
@@ -395,18 +486,18 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
                 }`}
                 title="Clear All"
               >
-                <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
 
-              {/* Divider */}
-              <div className={`h-6 w-px shrink-0 ${localDarkMode ? 'bg-white/20' : 'bg-gray-300'}`} />
+              {/* Divider - Hidden on mobile */}
+              <div className={`hidden sm:block h-6 w-px shrink-0 ${localDarkMode ? 'bg-white/20' : 'bg-gray-300'}`} />
 
-              {/* Font Size Selector */}
-              <div className="relative shrink-0">
+              {/* Font Size Selector - Hidden on mobile */}
+              <div className="hidden sm:block relative shrink-0">
                 <select
                   value={fontSize}
                   onChange={(e) => setFontSize(Number(e.target.value))}
-                  className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 appearance-none cursor-pointer pr-6 sm:pr-8 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 appearance-none cursor-pointer pr-8 ${
                     localDarkMode
                       ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20 [&>option]:bg-gray-900 [&>option]:text-white'
                       : 'bg-white/60 hover:bg-white/90 text-gray-700 border border-gray-300 shadow-md [&>option]:bg-white [&>option]:text-gray-900'
@@ -422,7 +513,7 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
                   <option value="22">22px</option>
                   <option value="24">24px</option>
                 </select>
-                <Type className={`absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-3.5 sm:h-3.5 pointer-events-none ${
+                <Type className={`absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${
                   localDarkMode ? 'text-white/60' : 'text-gray-500'
                 }`} />
               </div>
@@ -433,59 +524,99 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
           <div className="relative group">
             <div className={`absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-focus-within:opacity-20 blur-xl transition-opacity duration-500 pointer-events-none`} />
             <div style={{ height: '70vh', minHeight: '400px' }} className="relative overflow-hidden rounded-xl">
-              <CodeEditor
-                value={value}
-                onChange={onChange}
-                language={language}
-                theme={localDarkMode ? 'dark' : 'light'}
-                readOnly={false}
-                fontSize={fontSize}
-              />
+              {isWebProgram ? (
+                <MultiPaneEditor
+                  htmlCode={localHtmlCode}
+                  cssCode={localCssCode}
+                  jsCode={value}
+                  onHtmlChange={(newHtml) => {
+                    setLocalHtmlCode(newHtml);
+                    onHtmlChange?.(newHtml);
+                  }}
+                  onCssChange={(newCss) => {
+                    setLocalCssCode(newCss);
+                    onCssChange?.(newCss);
+                  }}
+                  onJsChange={onChange}
+                  darkMode={localDarkMode}
+                  readOnly={false}
+                />
+              ) : (
+                <CodeEditor
+                  value={value}
+                  onChange={onChange}
+                  language={language as 'c' | 'cpp' | 'python' | 'java'}
+                  theme={localDarkMode ? 'dark' : 'light'}
+                  readOnly={false}
+                  fontSize={fontSize}
+                />
+              )}
             </div>
           </div>
 
-          {/* Input/Output Section */}
-          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 sm:p-6 border-t ${
-            localDarkMode ? 'border-white/10 bg-white/5' : 'border-gray-200/50 bg-white/30'
-          }`}>
-            {/* Input Section */}
-            <div className="relative group">
-              <label className={`block text-sm font-semibold mb-2 ${
-                localDarkMode ? 'text-gray-300' : 'text-gray-700'
-              }`}>
-                Input (stdin)
-              </label>
-              <div className={`absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 opacity-0 group-focus-within:opacity-10 blur-xl transition-opacity duration-500 rounded-xl pointer-events-none`} />
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Enter your input here..."
-                className={`w-full h-40 sm:h-48 p-4 rounded-xl font-mono text-sm resize-none transition-all duration-300 focus:ring-2 focus:outline-none relative ${
-                  localDarkMode
-                    ? 'bg-black/30 text-white placeholder-gray-500 border border-white/10 focus:border-blue-400/50 focus:ring-blue-400/30'
-                    : 'bg-white/50 text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-blue-400 focus:ring-blue-400/30 shadow-inner'
-                }`}
-                spellCheck={false}
-              />
+          {/* Execution Section - Conditional based on language type */}
+          {canExecuteInFrontend && showExecutionModal ? (
+            // Inline execution for web languages
+            <div className={`border-t ${
+              localDarkMode ? 'border-white/10' : 'border-gray-200/50'
+            }`} style={{ height: '60vh', minHeight: '400px' }}>
+              {isReactProgram ? (
+                <ReactRunner
+                  code={value}
+                  autoRun={false}
+                />
+              ) : (
+                <HtmlCssJsRunner
+                  html={localHtmlCode}
+                  css={localCssCode}
+                  js={value}
+                  autoRun={false}
+                />
+              )}
             </div>
+          ) : !canExecuteInFrontend ? (
+            // Input/Output for backend languages
+            <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 sm:p-6 border-t ${
+              localDarkMode ? 'border-white/10 bg-white/5' : 'border-gray-200/50 bg-white/30'
+            }`}>
+              {/* Input Section */}
+              <div className="relative group">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  localDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Input (stdin)
+                </label>
+                <div className={`absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 opacity-0 group-focus-within:opacity-10 blur-xl transition-opacity duration-500 rounded-xl pointer-events-none`} />
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Enter your input here..."
+                  className={`w-full h-40 sm:h-48 p-4 rounded-xl font-mono text-sm resize-none transition-all duration-300 focus:ring-2 focus:outline-none relative ${
+                    localDarkMode
+                      ? 'bg-black/30 text-white placeholder-gray-500 border border-white/10 focus:border-blue-400/50 focus:ring-blue-400/30'
+                      : 'bg-white/50 text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-blue-400 focus:ring-blue-400/30 shadow-inner'
+                  }`}
+                  spellCheck={false}
+                />
+              </div>
 
-            {/* Output Section */}
-            <div className="relative group">
-              <label className={`block text-sm font-semibold mb-2 ${
-                localDarkMode ? 'text-gray-300' : 'text-gray-700'
-              }`}>
-                Output
-              </label>
-              <div className={`absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 ${output ? 'opacity-10' : ''} blur-xl transition-opacity duration-500 rounded-xl pointer-events-none`} />
-              <div className={`w-full h-40 sm:h-48 p-4 rounded-xl font-mono text-sm overflow-auto relative ${
-                localDarkMode
-                  ? 'bg-black/30 border border-white/10'
-                  : 'bg-white/50 border border-gray-200 shadow-inner'
-              }`}>
-                {output ? (
-                  <pre className={`whitespace-pre-wrap ${
-                    isOutputError
-                      ? 'text-red-400'
+              {/* Output Section */}
+              <div className="relative group">
+                <label className={`block text-sm font-semibold mb-2 ${
+                  localDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Output
+                </label>
+                <div className={`absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 ${output ? 'opacity-10' : ''} blur-xl transition-opacity duration-500 rounded-xl pointer-events-none`} />
+                <div className={`w-full h-40 sm:h-48 p-4 rounded-xl font-mono text-sm overflow-auto relative ${
+                  localDarkMode
+                    ? 'bg-black/30 border border-white/10'
+                    : 'bg-white/50 border border-gray-200 shadow-inner'
+                }`}>
+                  {output ? (
+                    <pre className={`whitespace-pre-wrap ${
+                      isOutputError
+                        ? 'text-red-400'
                       : localDarkMode
                         ? 'text-green-400'
                         : 'text-green-600'
@@ -500,10 +631,11 @@ const NeoGlassEditorCodeMirror: React.FC<NeoGlassEditorCodeMirrorProps> = ({
               </div>
             </div>
           </div>
+          ) : null}
         </div>
 
         {/* Status Banner */}
-        {output && !isExecuting && (
+        {output && !isExecuting && !canExecuteInFrontend && (
           <div className={`mt-6 p-4 rounded-xl backdrop-blur-lg flex items-center gap-3 animate-fadeIn ${
             isOutputError
               ? localDarkMode

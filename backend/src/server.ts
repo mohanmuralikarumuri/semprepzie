@@ -1,9 +1,11 @@
+// IMPORTANT: Load environment variables FIRST before any other imports
+import './config/env';
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import cron from 'node-cron';
 import axios from 'axios';
 
@@ -24,9 +26,6 @@ import { requestLogger } from './middlewares/logger.middleware';
 // Import services
 import { FirebaseService } from './services/firebase.service';
 import { logger } from './utils/logger';
-
-// Load environment variables
-dotenv.config();
 
 class Server {
   private app: express.Application;

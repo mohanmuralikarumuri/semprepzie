@@ -8,6 +8,8 @@ class ContactController {
 
   constructor() {
     this.initializeTransporter();
+    // Bind methods to preserve 'this' context
+    this.submitForm = this.submitForm.bind(this);
   }
 
   private initializeTransporter(): void {

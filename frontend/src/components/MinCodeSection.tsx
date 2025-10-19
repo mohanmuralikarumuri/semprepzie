@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Code, ArrowLeft, Zap } from 'lucide-react';
+import { Code, ArrowLeft, Zap, Play } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { codeExecutionService } from '../services/codeExecution';
+import { canExecuteProgram } from '../services/programExecution.service';
 import NeoGlassEditorCodeMirror from './NeoGlassEditorCodeMirror';
 import PracticeEditor from './PracticeEditor';
 import { supabase } from '../config/supabase';
+import SemprepzieLoader from './SemprepzieLoader';
 
 // Define types
 interface MinCodeSubject {
@@ -28,9 +31,12 @@ interface MinCodeProgram {
 interface MinCodeSectionProps {
   darkMode?: boolean;
   onEditorStateChange?: (isInEditor: boolean) => void;
+  source?: 'dashboard' | 'standalone'; // NEW: Track where MinCodeSection is rendered from
 }
 
-const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEditorStateChange }) => {
+const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEditorStateChange, source = 'standalone' }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [minCodeSubjects, setMinCodeSubjects] = useState<MinCodeSubject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<MinCodeSubject | null>(null);
   const [programs, setPrograms] = useState<MinCodeProgram[]>([]);
@@ -72,6 +78,21 @@ const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEdi
 
     loadSubjects();
   }, []);
+
+  // Check for navigation state (coming back from execution page)
+  useEffect(() => {
+    const navigationState = location.state as { selectedSubjectCode?: string; view?: string } | null;
+    if (navigationState?.selectedSubjectCode && minCodeSubjects.length > 0) {
+      // Find and select the subject
+      const subject = minCodeSubjects.find(s => s.code === navigationState.selectedSubjectCode);
+      if (subject) {
+        setSelectedSubject(subject);
+        setView('programs');
+        // Clear the state so it doesn't trigger again
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, minCodeSubjects]);
 
   // Notify parent when editor view changes
   useEffect(() => {
@@ -164,6 +185,28 @@ const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEdi
     setView('editor');
   };
 
+  const handleRunProgram = (program: MinCodeProgram, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Check if it's a web language that can execute directly
+    if (canExecuteProgram(program.language)) {
+      // Determine the correct "from" value based on where MinCodeSection is rendered
+      const fromLocation = source === 'dashboard' ? 'dashboard' : 'mincode';
+      
+      // Navigate to execution page with state to preserve back navigation
+      navigate(`/mincode/${selectedSubject?.code}/program/${program.id}/execute`, {
+        state: { 
+          from: fromLocation,  // 'dashboard' or 'mincode'
+          subjectCode: selectedSubject?.code,
+          subjectName: selectedSubject?.name
+        }
+      });
+    } else {
+      // Open in editor for Python/Java/C/C++
+      selectProgram(program);
+    }
+  };
+
   const openPracticeMode = () => {
     setView('practice');
   };
@@ -241,12 +284,7 @@ const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEdi
         {view === 'subjects' && (
           <div className="p-3 sm:p-6">
             {loadingSubjects ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className={`inline-block animate-spin rounded-full h-12 w-12 border-b-2 ${darkMode ? 'border-purple-400' : 'border-purple-600'}`}></div>
-                  <p className={`mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading min code subjects...</p>
-                </div>
-              </div>
+              <SemprepzieLoader />
             ) : minCodeSubjects.length === 0 ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
@@ -288,19 +326,16 @@ const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEdi
         {view === 'programs' && (
           <div className="p-3 sm:p-6">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-              </div>
+              <SemprepzieLoader />
             ) : programs.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {programs.map((program) => (
                   <div
                     key={program.id}
-                    onClick={() => selectProgram(program)}
-                    className={`rounded-lg p-4 sm:p-6 cursor-pointer transition-colors border ${
+                    className={`rounded-lg p-4 sm:p-6 transition-colors border ${
                       darkMode 
-                        ? 'bg-gray-800 hover:bg-gray-700 border-gray-600' 
-                        : 'bg-white hover:bg-gray-50 border-gray-200'
+                        ? 'bg-gray-800 border-gray-600' 
+                        : 'bg-white border-gray-200'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3 gap-2">
@@ -313,7 +348,7 @@ const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEdi
                       <p className={`mb-3 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{program.description}</p>
                     )}
                     {program.difficulty && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-4">
                         <span className={`text-xs font-semibold uppercase ${getDifficultyColor(program.difficulty)}`}>
                           {program.difficulty}
                         </span>
@@ -324,6 +359,31 @@ const MinCodeSection: React.FC<MinCodeSectionProps> = ({ darkMode = false, onEdi
                         )}
                       </div>
                     )}
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        onClick={() => selectProgram(program)}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                          darkMode
+                            ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                        }`}
+                      >
+                        <Code className="w-4 h-4" />
+                        <span className="sm:hidden">View</span>
+                        <span className="hidden sm:inline">View Code</span>
+                      </button>
+                      
+                      <button
+                        onClick={(e) => handleRunProgram(program, e)}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-colors"
+                      >
+                        <Play className="w-4 h-4" />
+                        <span className="sm:hidden">Run</span>
+                        <span className="hidden sm:inline">Run Code</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

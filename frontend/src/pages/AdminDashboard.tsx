@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Upload, FileText, Users, BarChart3, Settings, Code } from 'lucide-react';
 import AdminUpload from '../components/AdminUpload';
 import AdminLabManager from '../components/AdminLabManager';
-import AdminLabProgramsManager from '../components/AdminLabProgramsManager';
+import AdminLabProgramManager from '../components/AdminLabProgramManager';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const AdminDashboard: React.FC = () => {
@@ -143,7 +143,7 @@ const AdminDashboard: React.FC = () => {
               <div className="p-0">
                 {activeTab === 'upload' && <AdminUpload />}
                 {activeTab === 'lab' && <AdminLabManager />}
-                {activeTab === 'programs' && <AdminLabProgramsManager />}
+                {activeTab === 'programs' && <AdminLabProgramManager />}
               </div>
             </div>
           </div>
