@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
 import { cacheManager } from './utils/cacheManager';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -9,6 +10,11 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import DashboardPage from './pages/DashboardPage';
+import HomePage from './pages/HomePage';
+import TheoryPage from './pages/TheoryPage';
+import LabPage from './pages/LabPage';
+import MinCodePage from './pages/MinCodePage';
+import AboutPage from './pages/AboutPage';
 import DocumentsPage from './pages/DocumentsPage';
 import DocumentViewerPage from './pages/DocumentViewerPage';
 import ContactPage from './pages/ContactPage';
@@ -74,6 +80,7 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
 
 const App: React.FC = () => {
   const { loading } = useAuth();
+  const location = useLocation();
 
   // Initialize cache manager and setup offline handlers
   useEffect(() => {
@@ -100,7 +107,8 @@ const App: React.FC = () => {
         <OfflineIndicator />
         <InstallPWA />
         
-        <Routes>
+        <AnimatePresence mode="wait" initial={false}>
+          <Routes location={location} key={location.pathname}>
         {/* Public routes */}
         <Route
           path="/login"
@@ -132,7 +140,15 @@ const App: React.FC = () => {
               <DashboardPage />
             </ProtectedRoute>
           }
-        />
+        >
+          {/* Nested dashboard routes */}
+          <Route index element={<HomePage />} />
+          <Route path="theory" element={<TheoryPage />} />
+          <Route path="lab" element={<LabPage />} />
+          <Route path="mincode" element={<MinCodePage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="about" element={<AboutPage />} />
+        </Route>
         <Route
           path="/documents"
           element={
@@ -198,6 +214,7 @@ const App: React.FC = () => {
         {/* 404 page */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+        </AnimatePresence>
       </div>
     </ErrorBoundary>
   );

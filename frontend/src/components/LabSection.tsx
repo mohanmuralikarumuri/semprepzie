@@ -48,6 +48,7 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
   const [loading, setLoading] = useState(false);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
   const [view, setView] = useState<'subjects' | 'programs' | 'editor' | 'practice'>('subjects');
+  const [shouldAutoRun, setShouldAutoRun] = useState(false);
 
   // Load lab subjects from database on mount
   useEffect(() => {
@@ -108,6 +109,19 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
     }
   }, [selectedSubject]);
 
+  // Auto-run code when shouldAutoRun is true and program is selected
+  useEffect(() => {
+    if (shouldAutoRun && selectedProgram && currentCode && view === 'editor') {
+      // Reset the flag first to prevent multiple executions
+      setShouldAutoRun(false);
+      // Execute after a small delay to ensure UI is ready
+      const timer = setTimeout(() => {
+        executeCode();
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldAutoRun, selectedProgram, currentCode, view]);
+
   // Auto-load sample input when program is selected
   useEffect(() => {
     if (selectedProgram && selectedProgram.sample_input) {
@@ -142,8 +156,12 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
     }
   };
 
-  const executeCode = async () => {
-    if (!selectedProgram || !currentCode.trim()) return;
+  const executeCode = async (codeToExecute?: string, inputToUse?: string) => {
+    // Use parameters if provided, otherwise use state
+    const code = codeToExecute !== undefined ? codeToExecute : currentCode;
+    const stdin = inputToUse !== undefined ? inputToUse : input;
+    
+    if (!selectedProgram || !code.trim()) return;
 
     setIsExecuting(true);
     setOutput('');
@@ -151,14 +169,14 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
     try {
       const result = await codeExecutionService.executeCode({
         language: selectedProgram.language,
-        code: currentCode,
-        stdin: input
+        code: code,
+        stdin: stdin
       });
       
       if (result.success) {
         let formattedOutput = '';
-        if (input.trim()) {
-          formattedOutput = `Input:\n${input}\n\n`;
+        if (stdin.trim()) {
+          formattedOutput = `Input:\n${stdin}\n\n`;
         }
         formattedOutput += `Output:\n${result.output || 'Program executed successfully (no output)'}`;
         setOutput(formattedOutput);
@@ -177,12 +195,17 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
     setView('programs');
   };
 
-  const selectProgram = (program: LabProgram) => {
+  const selectProgram = (program: LabProgram, options?: { autoRun?: boolean }) => {
     setSelectedProgram(program);
     setCurrentCode(program.code);
     setInput(program.sample_input || ''); // Auto-load sample input
     setOutput('');
     setView('editor');
+    
+    // Set flag for auto-execution if requested
+    if (options?.autoRun) {
+      setShouldAutoRun(true);
+    }
   };
 
   const handleRunProgram = (program: LabProgram, e: React.MouseEvent) => {
@@ -202,8 +225,8 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
         }
       });
     } else {
-      // Open in editor for Python/Java/C/C++
-      selectProgram(program);
+      // Open in editor for Python/Java/C/C++ and auto-execute
+      selectProgram(program, { autoRun: true });
     }
   };
 
@@ -408,7 +431,8 @@ const LabSection: React.FC<LabSectionProps> = ({ darkMode = false, onEditorState
             onRun={async (code, inputText) => {
               setCurrentCode(code);
               setInput(inputText);
-              await executeCode();
+              // Pass code and input directly to avoid state update delay
+              await executeCode(code, inputText);
             }}
             isExecuting={isExecuting}
             output={output}

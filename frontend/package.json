@@ -36,6 +36,7 @@
     "clsx": "^2.0.0",
     "codemirror": "^6.0.2",
     "firebase": "^10.5.2",
+    "framer-motion": "^12.23.24",
     "jspdf": "^3.0.3",
     "lucide-react": "^0.288.0",
     "pyodide": "^0.28.2",

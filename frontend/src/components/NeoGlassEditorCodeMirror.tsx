@@ -489,15 +489,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
 
-              {/* Divider - Hidden on mobile */}
-              <div className={`hidden sm:block h-6 w-px shrink-0 ${localDarkMode ? 'bg-white/20' : 'bg-gray-300'}`} />
+              {/* Divider */}
+              <div className={`h-6 w-px shrink-0 ${localDarkMode ? 'bg-white/20' : 'bg-gray-300'}`} />
 
-              {/* Font Size Selector - Hidden on mobile */}
-              <div className="hidden sm:block relative shrink-0">
+              {/* Font Size Selector - Icon only on mobile, full on desktop */}
+              <div className="relative shrink-0">
                 <select
                   value={fontSize}
                   onChange={(e) => setFontSize(Number(e.target.value))}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 appearance-none cursor-pointer pr-8 ${
+                  className={`w-8 sm:w-auto px-1 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[0px] sm:text-sm font-medium transition-all duration-300 appearance-none cursor-pointer ${
                     localDarkMode
                       ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20 [&>option]:bg-gray-900 [&>option]:text-white'
                       : 'bg-white/60 hover:bg-white/90 text-gray-700 border border-gray-300 shadow-md [&>option]:bg-white [&>option]:text-gray-900'
@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <option value="22">22px</option>
                   <option value="24">24px</option>
                 </select>
-                <Type className={`absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${
+                <Type className={`absolute left-1/2 sm:right-2 sm:left-auto -translate-x-1/2 sm:translate-x-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${
                   localDarkMode ? 'text-white/60' : 'text-gray-500'
                 }`} />
               </div>

@@ -60,7 +60,12 @@
 }
 
 @media (max-width: 600px) {
+  .semprepzie-svg {
+    width: 95%;
+    max-width: none;
+  }
+  
   .semprepzie-text, .semprepzie-beam {
-    font-size: 70px;
+    font-size: 100px;
   }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AlertCircle, Terminal, Loader, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertCircle, Terminal, Loader, ChevronDown, ChevronUp, Monitor, Smartphone, Tablet, Printer } from 'lucide-react';
 
 interface ReactRunnerProps {
   code: string;
@@ -20,6 +20,7 @@ const ReactRunner: React.FC<ReactRunnerProps> = ({ code, autoRun = false }) => {
   const [hasExecuted, setHasExecuted] = useState(false);
   const [babelLoaded, setBabelLoaded] = useState(false);
   const [consoleExpanded, setConsoleExpanded] = useState(true);
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   // Load Babel standalone
   useEffect(() => {
@@ -180,6 +181,64 @@ const ReactRunner: React.FC<ReactRunnerProps> = ({ code, autoRun = false }) => {
     }
   };
 
+  const handlePrint = () => {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    // Capture the rendered component HTML
+    const outputElement = document.querySelector('.react-output-container');
+    const outputHTML = outputElement?.innerHTML || '<p>No output to print</p>';
+    
+    // Create print document with code and output
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>React Output Print - Semprepzie</title>
+        <style>
+          @media print {
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+            .code-section { margin-bottom: 30px; page-break-inside: avoid; }
+            .code-section h2 { color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+            pre { background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+            code { font-family: 'Courier New', monospace; font-size: 12px; }
+            .output-section { margin-top: 30px; border: 2px solid #ddd; padding: 20px; min-height: 400px; }
+            .output-section h2 { color: #333; margin-bottom: 20px; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Semprepzie - React Component Output</h1>
+        <p>Generated on: ${new Date().toLocaleString()}</p>
+        
+        <div class="code-section">
+          <h2>React Code (JSX)</h2>
+          <pre><code>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
+        </div>
+        
+        <div class="output-section">
+          <h2>Component Output (Desktop View)</h2>
+          ${outputHTML}
+        </div>
+      </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
+  const getViewportWidth = () => {
+    switch (viewportMode) {
+      case 'mobile': return '375px';
+      case 'tablet': return '768px';
+      default: return '100%';
+    }
+  };
+
   const getLogIcon = (level: string) => {
     switch (level) {
       case 'error':
@@ -214,34 +273,92 @@ const ReactRunner: React.FC<ReactRunnerProps> = ({ code, autoRun = false }) => {
               <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-green-500"></div>
             </div>
             <span className="text-xs sm:text-sm text-gray-600 ml-1 font-medium">React Component Output</span>
+            
+            {/* Viewport Controls */}
+            <div className="ml-auto flex items-center gap-1 sm:gap-2">
+              <button
+                onClick={() => setViewportMode('desktop')}
+                className={`p-1 sm:p-1.5 rounded transition-colors ${
+                  viewportMode === 'desktop' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+                title="Desktop View"
+              >
+                <Monitor className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                onClick={() => setViewportMode('tablet')}
+                className={`p-1 sm:p-1.5 rounded transition-colors ${
+                  viewportMode === 'tablet' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+                title="Tablet View (768px)"
+              >
+                <Tablet className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                onClick={() => setViewportMode('mobile')}
+                className={`p-1 sm:p-1.5 rounded transition-colors ${
+                  viewportMode === 'mobile' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+                title="Mobile View (375px)"
+              >
+                <Smartphone className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+              
+              {/* Divider */}
+              <div className="h-5 w-px bg-gray-300 mx-1"></div>
+              
+              {/* Print Button */}
+              <button
+                onClick={handlePrint}
+                className="p-1 sm:p-1.5 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
+                title="Print Output (PDF)"
+              >
+                <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+            </div>
           </div>
-          <div className="p-3 sm:p-4 lg:p-6 bg-white overflow-auto flex-1">
-            {error ? (
-              <div className="bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 rounded">
-                <div className="flex items-center gap-2 text-red-800 font-semibold mb-2 text-sm sm:text-base">
-                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Execution Error
-                </div>
-                <pre className="text-xs sm:text-sm text-red-700 whitespace-pre-wrap font-mono overflow-auto">
-                  {error}
-                </pre>
-              </div>
-            ) : Component ? (
-              <ErrorBoundary>
-                <Component />
-              </ErrorBoundary>
-            ) : (
-              <div className="text-center text-gray-500 py-8 sm:py-12">
-                {isRunning ? (
-                  <div className="flex items-center justify-center gap-2 sm:gap-3">
-                    <Loader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                    <span className="text-xs sm:text-sm">Compiling React code...</span>
+          <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-2 sm:p-4">
+            <div 
+              className="react-output-container bg-white shadow-lg transition-all duration-300 p-3 sm:p-4 lg:p-6"
+              style={{ 
+                width: getViewportWidth(),
+                minHeight: '100%',
+                maxWidth: '100%'
+              }}
+            >
+              {error ? (
+                <div className="bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 rounded">
+                  <div className="flex items-center gap-2 text-red-800 font-semibold mb-2 text-sm sm:text-base">
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                    Execution Error
                   </div>
-                ) : (
-                  <span className="text-xs sm:text-sm">React component will render here...</span>
-                )}
-              </div>
-            )}
+                  <pre className="text-xs sm:text-sm text-red-700 whitespace-pre-wrap font-mono overflow-auto">
+                    {error}
+                  </pre>
+                </div>
+              ) : Component ? (
+                <ErrorBoundary>
+                  <Component />
+                </ErrorBoundary>
+              ) : (
+                <div className="text-center text-gray-500 py-8 sm:py-12">
+                  {isRunning ? (
+                    <div className="flex items-center justify-center gap-2 sm:gap-3">
+                      <Loader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                      <span className="text-xs sm:text-sm">Compiling React code...</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs sm:text-sm">React component will render here...</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
