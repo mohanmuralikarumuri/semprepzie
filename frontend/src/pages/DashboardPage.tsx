@@ -2,13 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../hooks/useAdmin';
 import { toast } from 'react-hot-toast';
-import TheorySection from '../components/TheorySection';
+import NewTheorySection from '../components/NewTheorySection';
 import CacheManagement from '../components/CacheManagement';
 import ContactForm from '../components/ContactForm';
-import LatestUpdates from '../components/LatestUpdates';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import LabSection from '../components/LabSection';
-import { LatestUpdate } from '../hooks/useLatestUpdates';
 import './dashboard.css';
 
 interface CodeSnippet {
@@ -163,16 +161,6 @@ const DashboardPage: React.FC = () => {
               </div>
             </section>
 
-            {/* Latest Updates Section */}
-            <LatestUpdates 
-              limit={8}
-              darkMode={isDarkTheme}
-              onDocumentClick={(update: LatestUpdate) => {
-                // Open the document in a new tab
-                window.open(update.url, '_blank', 'noopener,noreferrer');
-              }}
-            />
-
             {/* About Section */}
             <div className="home-section-divider">
               <div className="home-about-section">
@@ -260,7 +248,7 @@ const DashboardPage: React.FC = () => {
         );
 
       case 'theory':
-        return <TheorySection onPDFViewingChange={handlePDFViewingChange} darkMode={isDarkTheme} />;
+        return <NewTheorySection onPDFViewingChange={handlePDFViewingChange} darkMode={isDarkTheme} />;
 
       case 'lab':
         return <LabSection />;

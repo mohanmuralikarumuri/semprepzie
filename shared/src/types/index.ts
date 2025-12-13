@@ -11,6 +11,9 @@ export interface User {
 
 export type UserRole = 'student' | 'admin' | 'instructor';
 
+// Export theory types
+export * from './theory.types';
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken?: string;

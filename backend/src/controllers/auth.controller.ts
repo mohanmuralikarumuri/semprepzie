@@ -5,40 +5,20 @@ import jwt from 'jsonwebtoken';
 import { FirebaseService } from '../services/firebase.service';
 import { createError } from '../middlewares/error.middleware';
 import { logger } from '../utils/logger';
-// import { validateCollegeEmail, extractStudentNumber } from '@semprepzie/shared';
 
-// Temporary inline functions to replace shared module
-const ALLOWED_EMAIL_DOMAIN = '@aitsrajampet.ac.in';
-const VALID_STUDENT_NUMBERS = [
-  '0501', '0567', '0568', '0569', '0570', '0571', '0572', '0573', '0574', '0575',
-  '0576', '0577', '0578', '0579', '0580', '0581', '0582', '0583', '0584', '0585',
-  '0586', '0587', '0588', '0589', '0590', '0591', '0592', '0593', '0594', '0595',
-  '0596', '0597', '0598', '0599', '05A0', '05A1', '05A2', '05A3', '05A4', '05A5',
-  '05A6', '05A7', '05A8', '05A9', '05B0', '05B1', '05B2', '05B3', '05B4', '05B5',
-  '05B6', '05B7', '05C3', '05B8', '05B9', '05C0', '05C1', '05C2', '05C4', '05C5',
-  '05C6', '05C7', '05C8', '05C9', '05D0', '05D1', '0510', '0511', '0512', '0513'
-];
+// Admin email constant
+const ADMIN_EMAIL = 'semprepzie@gmail.com';
 
-function extractStudentNumber(email: string): string {
+function isValidEmail(email: string): boolean {
   if (!email || typeof email !== 'string') {
-    return '';
+    return false;
   }
-  const localPart = email.split('@')[0];
-  if (localPart.length >= 4) {
-    return localPart.slice(-4).toUpperCase();
-  }
-  return '';
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 
-function validateCollegeEmail(email: string): boolean {
-  if (!email || typeof email !== 'string') {
-    return false;
-  }
-  if (!email.endsWith(ALLOWED_EMAIL_DOMAIN)) {
-    return false;
-  }
-  const studentNumber = extractStudentNumber(email);
-  return VALID_STUDENT_NUMBERS.includes(studentNumber);
+function isAdminEmail(email: string): boolean {
+  return email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 }
 
 class AuthController {
@@ -49,16 +29,18 @@ class AuthController {
       throw createError('Email and password are required', 400);
     }
 
-    // Validate email domain and student number
-    if (!validateCollegeEmail(email)) {
-      const studentNumber = extractStudentNumber(email);
-      throw createError(`Access denied: Student number "${studentNumber}" is not in the authorized list`, 403);
+    // Validate email format
+    if (!isValidEmail(email)) {
+      throw createError('Invalid email format', 400);
     }
 
     try {
       // TEMPORARY BYPASS: While Firebase Admin SDK permissions are being fixed
       // Just validate the email format and return success
-      logger.info(`Login attempt for authorized email: ${email}`);
+      logger.info(`Login attempt for email: ${email}`);
+      
+      // Check if admin
+      const isAdmin = isAdminEmail(email);
       
       // TODO: Remove this bypass once Firebase Admin SDK permissions are fixed
       // const firebaseService = FirebaseService.getInstance();
@@ -72,6 +54,7 @@ class AuthController {
           email: email,
           displayName: email.split('@')[0],
           emailVerified: false,
+          role: isAdmin ? 'admin' : 'student',
           note: 'Temporary response while Firebase permissions are being configured'
         }
       });
@@ -88,10 +71,9 @@ class AuthController {
       throw createError('Email and password are required', 400);
     }
 
-    // Validate email domain and student number
-    if (!validateCollegeEmail(email)) {
-      const studentNumber = extractStudentNumber(email);
-      throw createError(`Access denied: Student number "${studentNumber}" is not in the authorized list`, 403);
+    // Validate email format
+    if (!isValidEmail(email)) {
+      throw createError('Invalid email format', 400);
     }
 
     // Password validation
@@ -101,7 +83,10 @@ class AuthController {
 
     try {
       // TEMPORARY BYPASS: While Firebase Admin SDK permissions are being fixed
-      logger.info(`Signup attempt for authorized email: ${email}`);
+      logger.info(`Signup attempt for email: ${email}`);
+      
+      // Check if admin
+      const isAdmin = isAdminEmail(email);
       
       // TODO: Remove this bypass once Firebase Admin SDK permissions are fixed
       // const firebaseService = FirebaseService.getInstance();
@@ -116,6 +101,7 @@ class AuthController {
           email: email,
           displayName: displayName || email.split('@')[0],
           emailVerified: false,
+          role: isAdmin ? 'admin' : 'student',
           note: 'Temporary response while Firebase permissions are being configured. Use Firebase client SDK for actual account creation.'
         }
       });

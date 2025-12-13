@@ -1,18 +1,16 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { ADMIN_EMAIL } from '../utils';
 
 export const useAdmin = () => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
-    // Check if user logged in via admin route
-    // We'll store this in sessionStorage when admin login is successful
-    const adminSession = sessionStorage.getItem('adminSession');
-    const currentUserId = user?.uid;
-    
-    if (user && user.emailVerified && adminSession === currentUserId) {
-      setIsAdmin(true);
+    // Check if user is the admin based on email
+    if (user && user.email && user.emailVerified) {
+      const isAdminUser = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      setIsAdmin(isAdminUser);
     } else {
       setIsAdmin(false);
     }

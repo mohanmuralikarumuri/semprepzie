@@ -77,9 +77,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Clear any existing admin session for regular login
       sessionStorage.removeItem('adminSession');
       
-      // Validate email domain
+      // Validate email format
       if (!validateCollegeEmailShared(email)) {
-        throw new Error('Only @aitsrajampet.ac.in emails are allowed');
+        throw new Error('Please enter a valid email address');
       }
 
       // Validate with backend first
@@ -157,9 +157,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signup = async (email: string, password: string, displayName?: string): Promise<void> => {
     try {
-      // Validate email domain
+      // Validate email format
       if (!validateCollegeEmailShared(email)) {
-        throw new Error('Only @aitsrajampet.ac.in emails are allowed');
+        throw new Error('Please enter a valid email address');
       }
 
       // Validate password

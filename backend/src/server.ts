@@ -13,6 +13,7 @@ import documentRoutes from './routes/document.routes';
 import contactRoutes from './routes/contact.routes';
 import deviceRoutes from './routes/device.routes';
 import labRoutes from './routes/lab.routes';
+import otpRoutes from './routes/otp.routes';
 
 // Import middleware
 import { errorHandler } from './middlewares/error.middleware';
@@ -125,6 +126,7 @@ class Server {
     this.app.use('/api/contact', contactRoutes);
     this.app.use('/api/devices', deviceRoutes);
     this.app.use('/api/lab', labRoutes);
+    this.app.use('/api/otp', otpRoutes);
 
     // Serve static files in production with proper headers
     if (process.env.NODE_ENV === 'production') {

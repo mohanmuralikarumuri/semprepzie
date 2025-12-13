@@ -1,8 +1,8 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-// Student validation constants
-const VALID_STUDENT_PATTERN = '23701a05';
+// Admin email
+export const ADMIN_EMAIL = 'semprepzie@gmail.com';
 
 // Validation functions
 export function validateCollegeEmailShared(email: string): boolean {
@@ -10,16 +10,9 @@ export function validateCollegeEmailShared(email: string): boolean {
     return false;
   }
 
-  // Check if email ends with the college domain
-  if (!email.endsWith('@aitsrajampet.ac.in')) {
-    return false;
-  }
-
-  // Extract the local part of email (before @)
-  const localPart = email.split('@')[0].toLowerCase();
-  
-  // Check if email starts with the valid pattern
-  return localPart.startsWith(VALID_STUDENT_PATTERN);
+  // Check if it's a valid email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 
 export function extractStudentNumberShared(email: string): string {
@@ -49,17 +42,22 @@ export function isValidEmailFormatShared(email: string): boolean {
   return emailRegex.test(email);
 }
 
+export function isAdminEmail(email: string): boolean {
+  return email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
 export function getStudentInfoFromEmailShared(email: string) {
   const isValid = validateCollegeEmailShared(email);
   const studentNumber = extractStudentNumberShared(email);
   const fullStudentId = getStudentIdFromEmailShared(email);
+  const isAdmin = isAdminEmail(email);
   
   return {
     isValid,
     studentNumber,
     fullStudentId,
     email: email.toLowerCase(),
-    domain: '@aitsrajampet.ac.in',
+    isAdmin,
   };
 }
 
